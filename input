@@ -1,10 +1,1 @@
-switch(45-89){
-	case 89:
-		print 45;
-		
-	case 35:
-		print 78;
-		
-	default: 
-		print 8;
-}
+int a,b,f[5][4][3],c[4][5]

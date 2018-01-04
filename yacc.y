@@ -23,10 +23,19 @@
 	
 	symbolTable GST[10000]; // Tabla de Simbolos Global hasta 10,000 elementos
 	
-	/*Cada entero controla la posicion de una tabla de simbolos, posST[0] controla
+	/*Cada entero controla la posicion de una tabla de simbolos, posSTT[0] controla
 	  la posicion de la tabla de simbolos global */
 	  
-	int posST[30]; // Control de las posiciones de 30 tablas de simbolos
+	int posSTT[30]; // Control de las posiciones de 30 tablas de simbolos
+	
+////// TABLA DE SIMBOLOS PARA LAS FUNCIONES //////
+
+	symbolTable ST[50][1000]; // Capacidad para 50 tablas de simbolos todas de hasta 100 elementos
+	
+	// Para indexar esta tabla de simbolos
+	
+	int posST = 0;
+	int symNum[50] = {0};
 	
 	
 ////// TABLA DE TIPOS //////
@@ -80,7 +89,7 @@
 	int tempNum = 0; // Contador de temporales
 	int etiNum = 0; // Contador de etiquetas
 	
-	int posSTAux; // para que insertIntoEmbryoST sea responsable con posST[0] la engañamos con posSTAux
+	int posSTAux; // para que insertIntoEmbryoST sea responsable con posSTT[0] la engañamos con posSTAux
 	
 	
 	/* Se usa con la funcion synthesizeCode aqui guardamos todos los apuntadores de
@@ -94,8 +103,9 @@
 	
 	////// TABLA DE SIMBOLOS //////
 
-	void printSymbolTable(symbolTable ST[],int posST);
-	
+	void printSymbolTableII(symbolTable ST[],int posST);
+	void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]);
+
 	////// TABLAL DE TIPOS //////
 	
 	void initGlobalTypeTable(typeTable GTT[],int* posTT);
@@ -306,7 +316,7 @@ d : t l {
 				GST[EST[i].posST].tipo = EST[i].tipo;
 			}
 			GST[EST[i].posST].tipoVar = "var";
-			if(posST[0] > 0){
+			if(posSTT[0] > 0){
 				GST[EST[i].posST].dir = GST[EST[i].posST-1].dir + getDimWithPosTT(GST[EST[i].posST-1].tipo,GTT);			
 			} else {
 				GST[EST[i].posST].dir = 0;
@@ -314,15 +324,39 @@ d : t l {
 			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
 			   posST siempre almacene la direccion de la tabla de simbolos en donde podemos almacenar
 			   un elemeto directamente */
-			posST[0] = posST[0] + 1; 
+			posSTT[0] = posSTT[0] + 1; 
 		}
 		
-		printf("El valor de posST[0]: %d\n",posST[0]);
-		printSymbolTable(GST,posST[0]);
+		// Vaciado de datos de la tabla de simbolos embrion a la tabla de simbolos global
+		
+		for(i=0;i<$2.elementosEST;i++){
+			ST[posST][symNum[posST]].lexema = EST[i].lexema;
+			if(EST[i].tipo == -1){
+				ST[posST][symNum[posST]].tipo = $1.tipo;
+			} else {
+				ST[posST][symNum[posST]].tipo = EST[i].tipo;
+			}
+			ST[posST][symNum[posST]].tipoVar = "var";
+			if(symNum[posST] > 0){
+				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithPosTT(ST[posST][symNum[posST]-1].tipo,GTT);			
+			} else {
+				ST[posST][symNum[posST]].dir = 0;
+			}
+			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
+			   posST siempre almacene la direccion de la tabla de simbolos en donde podemos almacenar
+			   un elemeto directamente */
+			symNum[posST] = symNum[posST] + 1; 
+		}
+		
+		posST++;
+		
+		printSymbolTableII(GST,posSTT[0]);
 		printTypeTable(GTT,posTT);
 		printEmbryoSymbolTable(EST,posEST);
 		printEmbryoTypeTable(ETT,posETT);
-		printf("\n\nelementosEST: %d\nelementosETT : %d\n",$2.elementosEST,$2.elementosETT);
+		printf("lo nuevo\n");
+		printSymbolTable(ST,posST,symNum);
+		
 	};
 
 t : VOID {
@@ -356,7 +390,7 @@ l : l COMA ID c {
 		}
 	}
 	|ID c {
-		posSTAux = posST[0];
+		posSTAux = posSTT[0];
 		if(!$2.isArray){// si no es un arreglo
 			insertIntoEmbryoSymbolTable(&posEST,&posSTAux,$1,-1,EST);
 			$$.elementosEST = 1;
@@ -581,7 +615,7 @@ k : DEFAULT PNTS s {
 e : e SUM e {
 			if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posST[0],GST,$$.tipo);
+				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -613,7 +647,7 @@ e : e SUM e {
 	| e RES e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posST[0],GST,$$.tipo);
+				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -645,7 +679,7 @@ e : e SUM e {
 	| e MUL e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posST[0],GST,$$.tipo);
+				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -677,7 +711,7 @@ e : e SUM e {
 	| e DIV e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posST[0],GST,$$.tipo);
+				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -709,7 +743,7 @@ e : e SUM e {
 	| e MOD e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posST[0],GST,$$.tipo);
+				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -740,7 +774,7 @@ e : e SUM e {
 	}
 	| CADENA {
 		$$.tipo = 4;
-		$$.temp = newTempCadena(&tempNum,&posST[0],&posTT,GST,GTT,$1);
+		$$.temp = newTempCadena(&tempNum,&posSTT[0],&posTT,GST,GTT,$1);
 		$$.codigo = $1;
 	}
 	| NUMERO {
@@ -872,7 +906,7 @@ int main(int argc,char **argv){
 		yyin = fopen(argv[1],"r");	
 	}
 ////// INICIALIZACIONES //////
-	posST[0] = 0;
+	posSTT[0] = 0;
 	initGlobalTypeTable(GTT,&posTT);
 	
 	yyparse();
@@ -887,13 +921,29 @@ void yyerror(char *s){
 
 ////// TABLA DE SIMBOLOS //////
 
-void printSymbolTable(symbolTable ST[],int posST){
+void printSymbolTableII(symbolTable ST[],int posST){
 	int i;
 	printf("\npos\tlexema\ttipo\ttipoVar\tdir\n\n");
 	for(i=0;i<posST;i++){
 		printf("%d\t%s\t%d\t%s\t%d\n",i,ST[i].lexema,ST[i].tipo,ST[i].tipoVar,ST[i].dir);	
 	}		
 }
+
+void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
+	int i,j;
+	for(i=0;i<posST;i++){
+		printf("lexema\ttipo\ttipoVar\tdir\n\n");
+		for(j=0;j<symNum[i];j++){
+			printf("%s\t%d\t%s\t%d\n",
+				ST[i][j].lexema,
+				ST[i][j].tipo,
+				ST[i][j].tipoVar,
+				ST[i][j].dir);
+		}
+		printf("\n");
+	}
+}
+
 
 ////// TABLA DE TIPOS //////
 
