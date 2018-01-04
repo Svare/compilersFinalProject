@@ -4,58 +4,53 @@
 	#include <string.h>
 	#include <stdbool.h>
 
-/*Con esto evito el warning:implicit declaration of function ‘yylex’ [-Wimplicit-function-declaration]
+/*Con esto evito el warning: implicit declaration of function ‘yylex’ [-Wimplicit-function-declaration]
        yychar = yylex ();
                 ^         */
-
 	extern int yylex (void);
 
 ////// TABLA DE SIMBOLOS //////
 
-	struct symbolTable{
+	typedef struct {
 		char *lexema;
 		int tipo;
 		char *tipoVar;
 		int dir;
-	};
+	}symbolTable;
 	
-	typedef struct symbolTable symbolTable;
+	// Capacidad para 50 tablas de simbolos todas de hasta 1000 elementos
 	
-	symbolTable GST[10000]; // Tabla de Simbolos Global hasta 10,000 elementos
-	
-	/*Cada entero controla la posicion de una tabla de simbolos, posSTT[0] controla
-	  la posicion de la tabla de simbolos global */
-	  
-	int posSTT[30]; // Control de las posiciones de 30 tablas de simbolos
-	
-////// TABLA DE SIMBOLOS PARA LAS FUNCIONES //////
-
-	symbolTable ST[50][1000]; // Capacidad para 50 tablas de simbolos todas de hasta 100 elementos
+	symbolTable ST[50][1000];
 	
 	// Para indexar esta tabla de simbolos
 	
-	int posST = 0;
-	int symNum[50] = {0};
+	int posST = 0; // Me dice en que tabla estoy
+	int symNum[50] = {0}; // En que simbolo estoy indexado por posST (symNum[posST])
 	
+	// FUNCIONES
+	
+	void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]);
+	
+	int posSTT[5];         /*BORRAR*/
+	symbolTable GST[10];   /*BORRAR*/
 	
 ////// TABLA DE TIPOS //////
 
-	struct typeTable{
+	typedef struct {
 		char *tipo;
 		int tipoBase;
 		int dim;
-	};
+	}typeTable;
 	
-	typedef struct typeTable typeTable;
-	
+/*BORRAR*/
 	typeTable GTT[1000]; // Tabla de tipos global hasta 1,000 elementos
 	
 	int posTT; // Control de las posiciones de la tabla de tipos
+/*BORRAR*/
 
 ////// TABLA DE SIMBOLOS EMBRIÓN //////
 
 	typedef struct{
-		int posST;
 		char *lexema;
 		int tipo;
 	}embryoST;
@@ -64,8 +59,7 @@
 
 	int posEST = 0;
 
-	
-	void insertIntoEmbryoSymbolTable(int *posEST,int *posTS,char *lexema,int type,embryoST EST[]);
+	void insertIntoEmbryoSymbolTable(int *posEST,char *lexema,int type,embryoST EST[]);
 	void printEmbryoSymbolTable(embryoST EST[],int posEST);
 
 ////// TABLA DE TIPOS EMBRIÓN //////
@@ -87,10 +81,7 @@
 ////// VARIABLES GLOBALES USADAS EN LAS ACCIONES SEMÁNTICAS DE LA PARTE DE REGLAS DE TRADUCCIÓN //////
 	 
 	int tempNum = 0; // Contador de temporales
-	int etiNum = 0; // Contador de etiquetas
-	
-	int posSTAux; // para que insertIntoEmbryoST sea responsable con posSTT[0] la engañamos con posSTAux
-	
+	int etiNum = 0; // Contador de etiquetas	
 	
 	/* Se usa con la funcion synthesizeCode aqui guardamos todos los apuntadores de
 	   las cadenas que queremos unir y luego pasamos este arreglo como el primer
@@ -100,11 +91,6 @@
 	char *codeSnippets[50];
 	
 ////// FUNCIONES USADAS EN LAS ACCIONES SEMÁNTICAS DE LA PARTE DE REGLAS DE TRADUCCIÓN //////
-	
-	////// TABLA DE SIMBOLOS //////
-
-	void printSymbolTableII(symbolTable ST[],int posST);
-	void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]);
 
 	////// TABLAL DE TIPOS //////
 	
@@ -306,27 +292,6 @@ d : t l {
 			GTT[ETT[i].posTT].dim = ETT[i].dim * getDimWithPosTT($1.tipo,GTT);
 		}
 		
-		// Vaciado de la informacion de la tabla de simbolos embrion a la tabla de simbolos global
-		
-		for(i=0;i<$2.elementosEST;i++){
-			GST[EST[i].posST].lexema = EST[i].lexema;
-			if(EST[i].tipo == -1){
-				GST[EST[i].posST].tipo = $1.tipo;
-			} else {
-				GST[EST[i].posST].tipo = EST[i].tipo;
-			}
-			GST[EST[i].posST].tipoVar = "var";
-			if(posSTT[0] > 0){
-				GST[EST[i].posST].dir = GST[EST[i].posST-1].dir + getDimWithPosTT(GST[EST[i].posST-1].tipo,GTT);			
-			} else {
-				GST[EST[i].posST].dir = 0;
-			}
-			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
-			   posST siempre almacene la direccion de la tabla de simbolos en donde podemos almacenar
-			   un elemeto directamente */
-			posSTT[0] = posSTT[0] + 1; 
-		}
-		
 		// Vaciado de datos de la tabla de simbolos embrion a la tabla de simbolos global
 		
 		for(i=0;i<$2.elementosEST;i++){
@@ -350,7 +315,7 @@ d : t l {
 		
 		posST++;
 		
-		printSymbolTableII(GST,posSTT[0]);
+//		printSymbolTableII(GST,posSTT[0]);
 		printTypeTable(GTT,posTT);
 		printEmbryoSymbolTable(EST,posEST);
 		printEmbryoTypeTable(ETT,posETT);
@@ -380,23 +345,22 @@ t : VOID {
 	
 l : l COMA ID c {
 		if(!$4.isArray){// si no es un arreglo
-			insertIntoEmbryoSymbolTable(&posEST,&posSTAux,$3,-1,EST);
+			insertIntoEmbryoSymbolTable(&posEST,$3,-1,EST);
 			$$.elementosEST = $1.elementosEST + 1;
 			$$.elementosETT = $1.elementosETT + $4.elementosETT;
 		} else { // si es un arreglo
-			insertIntoEmbryoSymbolTable(&posEST,&posSTAux,$3,$4.tipoBase,EST);
+			insertIntoEmbryoSymbolTable(&posEST,$3,$4.tipoBase,EST);
 			$$.elementosEST = $1.elementosEST + 1;
 			$$.elementosETT = $1.elementosETT + $4.elementosETT;
 		}
 	}
 	|ID c {
-		posSTAux = posSTT[0];
 		if(!$2.isArray){// si no es un arreglo
-			insertIntoEmbryoSymbolTable(&posEST,&posSTAux,$1,-1,EST);
+			insertIntoEmbryoSymbolTable(&posEST,$1,-1,EST);
 			$$.elementosEST = 1;
 			$$.elementosETT = 0;
 		} else { // si es un arreglo
-			insertIntoEmbryoSymbolTable(&posEST,&posSTAux,$1,$2.tipoBase,EST);
+			insertIntoEmbryoSymbolTable(&posEST,$1,$2.tipoBase,EST);
 			$$.elementosEST = 1;
 			$$.elementosETT = $2.elementosETT;
 		}
@@ -1292,20 +1256,18 @@ char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTab
    lo que va a hacer es una insertar esos elementos en la posicion que corresponda de la tabla
    EST[] */
 
-void insertIntoEmbryoSymbolTable(int *posEST,int *posST,char *lexema,int type,embryoST EST[]){
-	EST[*posEST].posST = *posST;
+void insertIntoEmbryoSymbolTable(int *posEST,char *lexema,int type,embryoST EST[]){
 	EST[*posEST].lexema = lexema;
 	EST[*posEST].tipo = type;
 	
 	*posEST = *posEST + 1;
-	*posST = *posST + 1; 
 }
 
 void printEmbryoSymbolTable(embryoST EST[],int posEST){
 	int i;
-	printf("\nposEST\tposTS\tlexema\ttipo\n\n");
+	printf("\nposEST\tlexema\ttipo\n\n");
 	for(i=0;i<posEST;i++){
-		printf("%d\t%d\t%s\t%d\n",i,EST[i].posST,EST[i].lexema,EST[i].tipo);
+		printf("%d\t%s\t%d\n",i,EST[i].lexema,EST[i].tipo);
 	}
 	printf("\n");
 }
