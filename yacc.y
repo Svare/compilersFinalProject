@@ -30,6 +30,7 @@
 	// FUNCIONES
 	
 	void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]);
+	void insertIntoST(int posST,int *symNum,char *lexeme,int type,char *varType,int dir,symbolTable ST[][1000]);
 	
 	int posSTT[5];         /*BORRAR*/
 	symbolTable GST[10];   /*BORRAR*/
@@ -53,6 +54,9 @@
 	int posTT;
 	int typNum[50];
 	
+	
+	void insertIntoTT(int posTT,int *typNum,char *type,int baseType,int dim);
+	
 	// Regresa la dimension de un tipo dada su coordenada posTT & typNum de la Tabla de Tipos
 	
 	int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]);
@@ -60,7 +64,7 @@
 	
 	void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]);
 	
-
+	void initTypeTable(typeTable TT[][1000],int typNum[]);
 
 ////// TABLA DE SIMBOLOS EMBRIÓN //////
 
@@ -108,8 +112,8 @@
 
 	////// TABLAL DE TIPOS //////
 	
-	void initTypeTable(typeTable TT[][1000],int typNum[]);
-	void printTypeTableII(typeTable TT[],int posTTT);
+	
+	
 	
 	////// //////
 	
@@ -142,7 +146,23 @@
 	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
 	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
 	char* newTempCadena(int* temp,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
+	
+	////// NO TERMIANAL G //////
+	
+	struct params* initParam(int type,bool isArray);
+	void insertParam(struct params* initial,int type,bool isArray);
+	
+	/* Estructura utilizada para almacenar los tipos de los argumetos y si estos
+	   son arrays o no */
+	   
+	// Los no terminales A y G tienen un apuntador a una de estas estructuras
 		
+	struct params{
+		struct params *next;
+		int tipo;
+		bool isArray;
+	};
+	
 %}
 
 %union {
@@ -174,6 +194,20 @@
 		int dim;
 		int elementosETT;
 	}C;
+
+	struct {
+		int numParams;
+		struct params *parametros;
+	}A;
+	
+	struct {
+		int numParams;
+		struct params *parametros;
+	}G;
+	
+	struct {
+		int numIndices;
+	}I;
 	
 	struct {
 		char *next;
@@ -263,6 +297,10 @@
 %type<L> l
 %type<C> c
 
+%type<A> a
+%type<G> g
+%type<I> i
+
 %type<J> j
 %type<K> k
 %type<S> s
@@ -275,18 +313,31 @@
 
 %%
 
-inicio : s {
+inicio :  s {
 			printf(">>>\n\n%s\n",$1.codigo);
 		}
 		| t {
 			printf("El tipo es: %d\n",$1.tipo);
 		}
-		| d {
-			
-		}
 		| b {
 			printf("b.trueLabel: %s\nb.falseLabel: %s\n\n",$1.trueLabel,$1.falseLabel);
 			printf(">>>\n\n%s",$1.codigo);
+		}
+		|a {
+			printf("\nnumParams: %d\n",$1.numParams);
+			struct params *aux;
+			aux = $1.parametros;
+			
+			while(aux){
+				printf("%p: tipo: %d\tisArray: %d\n",aux,aux->tipo,(int)aux->isArray);
+				aux = aux->next;
+			}
+			
+			posTT++;
+			posST++;
+			
+			printTypeTable(TT,posTT,typNum);
+			printSymbolTable(ST,posST,symNum);
 		};
 
 d : t l {
@@ -409,6 +460,49 @@ c : LCHT NUMERO RCHT c {
 		$$.isUltimo = 1; // igual a true
 		$$.tipoBase = 0; // No se usa solo se inicializa
 		$$.dim = 0; // No se usa solo se inicializa
+	};
+
+a : g {
+		$$.numParams = $1.numParams;
+		$$.parametros = $1.parametros;	
+	}
+	| {
+		$$.numParams = 0;
+		$$.parametros = NULL;
+	};
+	
+g : g COMA t ID i {
+		if($5.numIndices == 0){
+			insertIntoST(posST,&symNum[posST],$4,$3.tipo,"param",0,ST);
+			$$.numParams = $1.numParams + 1;
+			$$.parametros = $1.parametros;
+			insertParam($$.parametros,$3.tipo,false);
+		} else {
+			insertIntoTT(posTT,&typNum[posST],"array",$3.tipo,$5.numIndices);
+			insertIntoST(posST,&symNum[posST],$4,typNum[posST]-1,"param",0,ST);
+			$$.numParams = $1.numParams + 1;
+			$$.parametros = $1.parametros;
+			insertParam($$.parametros,$3.tipo,true);
+		}
+	}
+	| t ID i {
+		if($3.numIndices == 0){
+			insertIntoST(posST,&symNum[posST],$2,$1.tipo,"param",0,ST);
+			$$.numParams = 1;
+			$$.parametros = initParam($1.tipo,false);
+		} else {
+			insertIntoTT(posTT,&typNum[posST],"array",$1.tipo,$3.numIndices);
+			insertIntoST(posST,&symNum[posST],$2,typNum[posST]-1,"param",0,ST);
+			$$.numParams = 1;
+			$$.parametros = initParam($1.tipo,true);
+		}
+	};
+	
+i : LCHT RCHT i {
+		$$.numIndices = $3.numIndices + 1;
+	}
+	| {
+		$$.numIndices = 0;
 	};
 
 s : IF LPAR b RPAR s {
@@ -907,15 +1001,17 @@ int main(int argc,char **argv){
 	void yyerror(char *s){
 		printf("%s::line:%d\n",s,yylineno-1);
 	}
+//*********************************************************
+//*****	 TABLA DE SIMBOLOS ********************************
+//*********************************************************
 
-////// TABLA DE SIMBOLOS //////
-
-void printSymbolTableII(symbolTable ST[],int posST){
-	int i;
-	printf("\npos\tlexema\ttipo\ttipoVar\tdir\n\n");
-	for(i=0;i<posST;i++){
-		printf("%d\t%s\t%d\t%s\t%d\n",i,ST[i].lexema,ST[i].tipo,ST[i].tipoVar,ST[i].dir);	
-	}		
+void insertIntoST(int posST,int *symNum,char *lexeme,int type,char *varType,int dir,symbolTable ST[][1000]){
+	ST[posST][*symNum].lexema = lexeme;
+	ST[posST][*symNum].tipo = type;
+	ST[posST][*symNum].tipoVar = varType;
+	ST[posST][*symNum].dir = dir;
+	
+	*symNum = *symNum + 1;
 }
 
 void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
@@ -933,8 +1029,17 @@ void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 	}
 }
 
+//*********************************************************
+//*****	 TABLA DE TIPOS ***********************************
+//*********************************************************
 
-////// TABLA DE TIPOS //////
+void insertIntoTT(int posTT,int *typNum,char *type,int baseType,int dim){
+	TT[posTT][*typNum].tipo = type;
+	TT[posTT][*typNum].tipoBase = baseType;
+	TT[posTT][*typNum].dim = dim;
+	
+	*typNum = *typNum + 1;
+}
 
 
 void initTypeTable(typeTable TT[][1000],int typNum[]){
@@ -973,15 +1078,6 @@ void initTypeTable(typeTable TT[][1000],int typNum[]){
 		typNum[i] = 5;
 	}	
 }
-
-void printTypeTableII(typeTable TT[],int posTTT){
-	int i;
-	printf("\npos\ttipo\ttipoBase\tdim\n\n");
-	for(i=0;i<posTTT;i++){
-		printf("%d\t%s\t  %d\t\t%d\n",i,TT[i].tipo,TT[i].tipoBase,TT[i].dim);	
-	}		
-}
-
 
 void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
 	int i,j;
@@ -1325,6 +1421,40 @@ char* newTempCadena(int* tempNum,int* posST,int* posTTT,symbolTable GST[],typeTa
 	*tempNum = *tempNum + 1;
 	
 	return s;
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~ FUNCIONES PARA EL NO TERMINAL G ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+struct params* initParam(int type,bool isArray){
+	struct params *initial;
+	
+	initial = (struct params*) malloc(sizeof(struct params));
+	
+	initial->next = NULL;
+	initial->tipo = type;
+	initial->isArray = isArray;
+	
+	return initial;
+}
+
+void insertParam(struct params* initial,int type,bool isArray){
+	struct params *aux,*new;
+	
+	aux = initial;
+	
+	while(aux->next != NULL){
+		aux = aux->next;
+	}
+	
+	new = (struct params*) malloc(sizeof(struct params));
+	
+	aux->next = new;
+	
+	new->next = NULL;
+	new->tipo = type;
+	new->isArray = isArray;
 }
 
 ////// FUNCIONES PARA LA TABLA DE SIMBOLOS EMBRIÓN //////

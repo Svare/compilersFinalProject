@@ -152,7 +152,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 148 "yacc.y" /* yacc.c:1909  */
+#line 168 "yacc.y" /* yacc.c:1909  */
 
 
 	struct {
@@ -182,6 +182,20 @@ union YYSTYPE
 		int dim;
 		int elementosETT;
 	}C;
+
+	struct {
+		int numParams;
+		struct params *parametros;
+	}A;
+	
+	struct {
+		int numParams;
+		struct params *parametros;
+	}G;
+	
+	struct {
+		int numIndices;
+	}I;
 	
 	struct {
 		char *next;
@@ -222,7 +236,7 @@ union YYSTYPE
 	char caracter;
 	
 
-#line 226 "y.tab.h" /* yacc.c:1909  */
+#line 240 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
