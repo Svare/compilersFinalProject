@@ -152,9 +152,15 @@
 	int getDim(char* tipo,typeTable GTT[],int posTTT);
 	bool isEmptyStr(char* s);
 	char* changeStr(char* numStr,int originType);
-	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
-//	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
 	
+	char* newTempNumero(int* tempNum,
+					int posST,
+					int posTT,
+					int *symNum,
+					symbolTable ST[][1000],
+					typeTable TT[][1000],
+					int eType);
+					
 	char* newTempCaracter(int* tempNum,
 						int posST,
 						int posTT,
@@ -413,7 +419,7 @@ inicio :  s {
 			posST++;
 			printTypeTable(TT,posTT,typNum);
 			printSymbolTable(ST,posST,symNum);
-			printf("Tipo: %d\tTemp: %s\tCodigo: %s\n",$1.tipo,$1.temp,$1.codigo);
+			printf("Tipo: %d\tTemp: %s\tCodigo: \n\n%s\n",$1.tipo,$1.temp,$1.codigo);
 		};
 
 d : t l {
@@ -800,7 +806,14 @@ k : DEFAULT PNTS s {
 e : e SUM e {
 			if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
+				
+				$$.temp = newTempNumero(&tempNum,
+										posST,
+										posTT,
+										&symNum[posST],
+										ST,
+										TT,
+										$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -832,7 +845,14 @@ e : e SUM e {
 	| e RES e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
+				
+				$$.temp = newTempNumero(&tempNum,
+										posST,
+										posTT,
+										&symNum[posST],
+										ST,
+										TT,
+										$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -864,7 +884,14 @@ e : e SUM e {
 	| e MUL e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
+				
+				$$.temp = newTempNumero(&tempNum,
+										posST,
+										posTT,
+										&symNum[posST],
+										ST,
+										TT,
+										$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -896,7 +923,14 @@ e : e SUM e {
 	| e DIV e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
+				
+				$$.temp = newTempNumero(&tempNum,
+										posST,
+										posTT,
+										&symNum[posST],
+										ST,
+										TT,
+										$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -928,7 +962,14 @@ e : e SUM e {
 	| e MOD e {
 		if(isNumero($1.tipo) && isNumero($3.tipo)){
 				$$.tipo = maxType($1.tipo,$3.tipo);
-				$$.temp = newTempNumero(&tempNum,&posSTT[0],GST,$$.tipo);
+				
+				$$.temp = newTempNumero(&tempNum,
+										posST,
+										posTT,
+										&symNum[posST],
+										ST,
+										TT,
+										$$.tipo);
 			
 				codeSnippets[0] = $1.codigo;
 				codeSnippets[1] = $3.codigo;
@@ -1459,55 +1500,13 @@ char* changeStr(char* numStr,int originType){
 	return s;
 }
 
-char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType){
-	int i = 0;
-	char buffer[30];
-	char *s;
-	
-	for(i=0;i<30;i++) { buffer[i] = 0; } // Limpiamos el buffer
-	
-	if(eType == 1){
-		sprintf(buffer,"t%d",*tempNum);
-		s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
-		strcpy(s,buffer);
-		GST[*posST].lexema = s;
-		GST[*posST].tipo = 1;
-		GST[*posST].tipoVar = "temp";
-		if(*posST > 0)
-			GST[*posST].dir = GST[*posST-1].dir + 4;
-		else
-			GST[*posST].dir = 0;			
-	} else if(eType == 2){
-		sprintf(buffer,"t%d",*tempNum);
-		s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
-		strcpy(s,buffer);
-		GST[*posST].lexema = s;
-		GST[*posST].tipo = 2;
-		GST[*posST].tipoVar = "temp";
-		if(*posST > 0)
-			GST[*posST].dir = GST[*posST-1].dir + 8;
-		else
-			GST[*posST].dir = 0;	
-	} else if(eType == 3){
-		sprintf(buffer,"t%d",*tempNum);
-		s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
-		strcpy(s,buffer);
-		GST[*posST].lexema = s;
-		GST[*posST].tipo = 3;
-		GST[*posST].tipoVar = "temp";
-		if(*posST > 0)
-			GST[*posST].dir = GST[*posST-1].dir + 8;
-		else
-			GST[*posST].dir = 0;	
-	}
-	
-	*posST = *posST + 1;
-	*tempNum = *tempNum + 1;
-	
-	return s;
-}
-/*
-char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
+char* newTempNumero(int* tempNum,
+					int posST,
+					int posTT,
+					int *symNum,
+					symbolTable ST[][1000],
+					typeTable TT[][1000],
+					int eType){
 	int i = 0;
 	char buffer[30];
 	char *s;
@@ -1517,20 +1516,23 @@ char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
 	sprintf(buffer,"t%d",*tempNum);
 	s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
 	strcpy(s,buffer);
-	GST[*posST].lexema = s;
-	GST[*posST].tipo = 4;
-	GST[*posST].tipoVar = "temp";
-	if(*posST > 0)
-		GST[*posST].dir = GST[*posST-1].dir + 1;
-	else
-		GST[*posST].dir = 0;
 		
-	*posST = *posST + 1;
+	ST[posST][*symNum].lexema = s;
+	ST[posST][*symNum].tipo = eType;
+	ST[posST][*symNum].tipoVar = "temp";
+		
+	if(*symNum > 0)
+		ST[posST][*symNum].dir = ST[posST][*symNum-1].dir + getDimWithTypNumPosTT(ST[posST][*symNum-1].tipo,posTT,TT);
+	else
+		ST[posST][*symNum].dir = 0;		
+	
+	
+	*symNum = *symNum + 1;
 	*tempNum = *tempNum + 1;
 	
 	return s;
 }
-*/
+
 char* newTempCaracter(int* tempNum,
 						int posST,
 						int posTT,
