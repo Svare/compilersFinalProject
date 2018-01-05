@@ -153,7 +153,14 @@
 	bool isEmptyStr(char* s);
 	char* changeStr(char* numStr,int originType);
 	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
-	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
+//	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
+	
+	char* newTempCaracter(int* tempNum,
+						int posST,
+						int posTT,
+						int *symNum,
+						symbolTable ST[][1000],
+						typeTable TT[][1000]);
 	
 	char* newTempCadena(int* tempNum,
 					int posST,
@@ -982,6 +989,22 @@ e : e SUM e {
 		$$.temp = s;
 		$$.codigo = "";
 	
+	}
+	| CARACTER {
+		$$.tipo = 4;
+		
+		$$.temp = newTempCaracter(&tempNum,
+									posST,
+									posTT,
+									&symNum[posST],
+									ST,
+									TT);
+						
+		char buffer[1] = {0},*s;
+		sprintf(buffer,"%c",$1);
+		s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
+		strcpy(s,buffer);
+		$$.codigo = s;
 	};
 	
 b : b OR b {
@@ -1483,7 +1506,7 @@ char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType){
 	
 	return s;
 }
-
+/*
 char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
 	int i = 0;
 	char buffer[30];
@@ -1503,6 +1526,37 @@ char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
 		GST[*posST].dir = 0;
 		
 	*posST = *posST + 1;
+	*tempNum = *tempNum + 1;
+	
+	return s;
+}
+*/
+char* newTempCaracter(int* tempNum,
+						int posST,
+						int posTT,
+						int *symNum,
+						symbolTable ST[][1000],
+						typeTable TT[][1000]){
+	int i = 0;
+	char buffer[30];
+	char *s;
+	
+	for(i=0;i<30;i++) { buffer[i] = 0; } // Limpiamos el buffer
+	
+	sprintf(buffer,"t%d",*tempNum);
+	s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
+	strcpy(s,buffer);
+	
+	ST[posST][*symNum].lexema = s;
+	ST[posST][*symNum].tipo = 4;
+	ST[posST][*symNum].tipoVar = "cstChar";
+	
+	if(*symNum > 0)
+		ST[posST][*symNum].dir = ST[posST][*symNum-1].dir + getDimWithTypNumPosTT(ST[posST][*symNum-1].tipo,posTT,TT);
+	else
+		ST[posST][*symNum].dir = 0;
+		
+	*symNum = *symNum + 1;
 	*tempNum = *tempNum + 1;
 	
 	return s;
