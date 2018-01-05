@@ -9,7 +9,9 @@
                 ^         */
 	extern int yylex (void);
 
-////// TABLA DE SIMBOLOS //////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//^^^^^ TABLA DE SIMBOLOS ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 	typedef struct {
 		char *lexema;
@@ -25,7 +27,7 @@
 	// Para indexar esta tabla de simbolos
 	
 	int posST = 0; // Me dice en que tabla estoy
-	int symNum[50] = {0}; // En que simbolo estoy indexado por posST (symNum[posST])
+	int symNum[50] = {0}; // En que simbolo estoy dada una tabla (symNum[posST])
 	
 	// FUNCIONES
 	
@@ -35,7 +37,9 @@
 	int posSTT[5];         /*BORRAR*/
 	symbolTable GST[10];   /*BORRAR*/
 	
-////// TABLA DE TIPOS //////
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//^^^^^ TABLA DE TIPOS ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 	typedef struct {
 		char *tipo;
@@ -43,28 +47,33 @@
 		int dim;
 	}typeTable;
 	
-/*BORRAR*/
-	typeTable GTT[1000]; // Tabla de tipos global hasta 1,000 elementos
+	// Capacidad para 50 tablas de tipos todas de hasta 1000 elementos
 	
-	int posTTT; // Control de las posiciones de la tabla de tipos
-/*BORRAR*/
-
 	typeTable TT[50][1000];
 	
-	int posTT;
-	int typNum[50];
+	// Para indexar esta tabla de tipos
 	
+	int posTT = 0; // Me dice en que tabla estoy
+	int typNum[50]; // Me dice en que tipo estoy dada una tabla (typNum[posTT])
 	
+	////// FUNCIONES //////
+	
+	void initTypeTable(typeTable TT[][1000],int typNum[]);
 	void insertIntoTT(int posTT,int *typNum,char *type,int baseType,int dim);
+	void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]);
 	
 	// Regresa la dimension de un tipo dada su coordenada posTT & typNum de la Tabla de Tipos
 	
 	int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]);
 	int getTypeWithTypeStr(char *typeStr,int posTT,typeTable TT[][1000]);
 	
-	void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]);
+/*BORRAR*/
+	typeTable GTT[1000]; // Tabla de tipos global hasta 1,000 elementos
 	
-	void initTypeTable(typeTable TT[][1000],int typNum[]);
+	int posTTT; // Control de las posiciones de la tabla de tipos
+/*BORRAR*/
+
+	
 
 ////// TABLA DE SIMBOLOS EMBRIÓN //////
 
@@ -145,7 +154,15 @@
 	char* changeStr(char* numStr,int originType);
 	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
 	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
-	char* newTempCadena(int* temp,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
+	
+	char* newTempCadena(int* tempNum,
+					int posST,
+					int posTT,
+					int *symNum,
+					int *typNum,
+					symbolTable ST[][1000],
+					typeTable TT[][1000],
+					char* cadenaLexema);
 	
 	////// NO TERMIANAL G //////
 	
@@ -285,7 +302,6 @@
 	
 	char *cadena;
 	char caracter;
-	
 }
 
 %token <numero> NUMERO
@@ -384,6 +400,13 @@ inicio :  s {
 			printTypeTable(TT,posTT,typNum);
 			printSymbolTable(ST,posST,symNum);
 			printFunctionTable(FT,posFT);
+		}
+		| e {
+			posTT++;
+			posST++;
+			printTypeTable(TT,posTT,typNum);
+			printSymbolTable(ST,posST,symNum);
+			printf("Tipo: %d\tTemp: %s\tCodigo: %s\n",$1.tipo,$1.temp,$1.codigo);
 		};
 
 d : t l {
@@ -565,7 +588,22 @@ i : LCHT RCHT i {
 		$$.numIndices = 0;
 	};
 
-s : IF LPAR b RPAR s {
+s : s s {
+		$$.next = $2.next;
+		
+		codeSnippets[0] = $1.codigo;
+		codeSnippets[1] = $2.codigo;
+		
+		$$.codigo = synthesizeCode(codeSnippets,2);
+		
+		if($1.tipoRet == $2.tipoRet){
+			$$.tipoRet = $1.tipoRet;
+		} else {
+			yyerror("Conflicto en los tipos de retorno");
+			exit(0);
+		}
+	}
+	| IF LPAR b RPAR s {
 		codeSnippets[0] = $3.codigo;
 		codeSnippets[1] = $3.trueLabel;
 		codeSnippets[2] = ":\n"; 
@@ -914,7 +952,13 @@ e : e SUM e {
 	}
 	| CADENA {
 		$$.tipo = 4;
-		$$.temp = newTempCadena(&tempNum,&posSTT[0],&posTTT,GST,GTT,$1);
+		$$.temp = newTempCadena(&tempNum,posST,
+								posTT,
+								&symNum[posST],
+								&typNum[posTT],
+								ST,
+								TT,
+								$1);
 		$$.codigo = $1;
 	}
 	| NUMERO {
@@ -1066,6 +1110,7 @@ int main(int argc,char **argv){
 	void yyerror(char *s){
 		printf("%s::line:%d\n",s,yylineno-1);
 	}
+	
 //*********************************************************
 //*****	 TABLA DE SIMBOLOS ********************************
 //*********************************************************
@@ -1334,7 +1379,9 @@ char* switchCode(char* etiquetas[],int numCasos[],char* temp,int indice){
 	return s;
 }
 
-////// FUNCIONES PARA EL NO TERMINAL E //////
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~ FUNCIONES PARA EL NO TERMINAL E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 bool isNumero(int eType){
@@ -1464,9 +1511,16 @@ char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
 /* Coloca en la tabla de tipos la informacion sobre la cadena (tipo "array",tipoBase "4",dim strlen(cadenaLexema))
    una vez hecho eso coloca en la tabla de simbolos global una nueva temporal ocupando el espacio de la longitud
    de la cadena y coloca como tipo el que se definio anteriormente en la tabla de tipos, finalmente regresa un
-   apuntador a cadena que apunta a la nueva etiquera que se acaba de definir */
+   apuntador a cadena que apunta a la nueva etiqueta que se acaba de definir */
 
-char* newTempCadena(int* tempNum,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema){
+char* newTempCadena(int* tempNum,
+					int posST,
+					int posTT,
+					int *symNum,
+					int *typNum,
+					symbolTable ST[][1000],
+					typeTable TT[][1000],
+					char* cadenaLexema){
 	int i = 0;
 	char buffer[30];
 	char *s;
@@ -1475,27 +1529,29 @@ char* newTempCadena(int* tempNum,int* posST,int* posTTT,symbolTable GST[],typeTa
 	
 	// Tabla de Tipos
 	
-	GTT[*posTTT].tipo = "array";
-	GTT[*posTTT].tipoBase = 4;
-	GTT[*posTTT].dim = (int) strlen(cadenaLexema);
+	TT[posTT][*typNum].tipo = "array";
+	TT[posTT][*typNum].tipoBase = 4;
+	TT[posTT][*typNum].dim = (int) strlen(cadenaLexema);
 	
 	// Tabla de Simbolos
 	
 	sprintf(buffer,"t%d",*tempNum);
 	s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
 	strcpy(s,buffer);
-	GST[*posST].lexema = s;
-	GST[*posST].tipo = *posTTT;
-	GST[*posST].tipoVar = "tempStr";
-	if(*posST > 0)
-		GST[*posST].dir = GST[*posST-1].dir + GTT[*posTTT].dim;
+	
+	ST[posST][*symNum].lexema = s;
+	ST[posST][*symNum].tipo = *typNum;
+	ST[posST][*symNum].tipoVar = "cstStr";
+	
+	if(*symNum > 0)
+		ST[posST][*symNum].dir = ST[posST][*symNum-1].dir + getDimWithTypNumPosTT(*typNum-1,posTT,TT);
 	else
-		GST[*posST].dir = 0;
+		ST[posST][*symNum].dir = 0;
 	
 	// Preparo variables de posicion de las tablas y contador de temporales para su nuevo uso
 	
-	*posST = *posST + 1;
-	*posTTT = *posTTT + 1;
+	*symNum = *symNum + 1;
+	*typNum = *typNum + 1;
 	*tempNum = *tempNum + 1;
 	
 	return s;
