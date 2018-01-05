@@ -110,8 +110,22 @@
 /*BORRAR*/
 	typeTable GTT[1000]; // Tabla de tipos global hasta 1,000 elementos
 	
-	int posTT; // Control de las posiciones de la tabla de tipos
+	int posTTT; // Control de las posiciones de la tabla de tipos
 /*BORRAR*/
+
+	typeTable TT[50][1000];
+	
+	int posTT;
+	int typNum[50];
+	
+	// Regresa la dimension de un tipo dada su coordenada posTT & typNum de la Tabla de Tipos
+	
+	int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]);
+	int getTypeWithTypeStr(char *typeStr,int posTT,typeTable TT[][1000]);
+	
+	void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]);
+	
+
 
 ////// TABLA DE SIMBOLOS EMBRIÓN //////
 
@@ -130,7 +144,7 @@
 ////// TABLA DE TIPOS EMBRIÓN //////
 	
 	typedef struct{
-		int posTT;
+		int typNum;
 		int tipoBase;
 		int dim;
 	}embryoTT;
@@ -139,7 +153,7 @@
 
 	int posETT = 0;
 
-	void inserIntoEmbryoTypeTable(int *posETT,int *posTT,int baseType,int dim,embryoTT ETT[]);
+	void inserIntoEmbryoTypeTable(int *posETT,int *typNum,int baseType,int dim,embryoTT ETT[]);
 	void printEmbryoTypeTable(embryoTT ETT[],int posETT);
 	
 	 
@@ -159,8 +173,8 @@
 
 	////// TABLAL DE TIPOS //////
 	
-	void initGlobalTypeTable(typeTable GTT[],int* posTT);
-	void printTypeTable(typeTable TT[],int posTT);
+	void initTypeTable(typeTable TT[][1000],int typNum[]);
+	void printTypeTableII(typeTable TT[],int posTTT);
 	
 	////// //////
 	
@@ -176,8 +190,8 @@
 	bool isFloat(int tipo);
 	bool isDouble(int tipo);
 	
-	int getPos(char* tipo,typeTable GTT[],int posTT);
-	int getDimWithPosTT(int posTT,typeTable GTT[]);
+	int getPos(char* tipo,typeTable GTT[],int posTTT);
+	int getDimWithposTTT(int posTTT,typeTable GTT[]);
 	
 	////// FUNCIONES PARA EL NO TERMINAL S //////
 	
@@ -187,15 +201,15 @@
 	
 	bool isNumero(int eType);
 	int maxType(int e1Type,int e2Type);
-	int getDim(char* tipo,typeTable GTT[],int posTT);
+	int getDim(char* tipo,typeTable GTT[],int posTTT);
 	bool isEmptyStr(char* s);
 	char* changeStr(char* numStr,int originType);
 	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
 	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
-	char* newTempCadena(int* temp,int* posST,int* posTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
+	char* newTempCadena(int* temp,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
 		
 
-#line 199 "y.tab.c" /* yacc.c:339  */
+#line 213 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -337,7 +351,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 134 "yacc.y" /* yacc.c:355  */
+#line 148 "yacc.y" /* yacc.c:355  */
 
 
 	struct {
@@ -407,7 +421,7 @@ union YYSTYPE
 	char caracter;
 	
 
-#line 411 "y.tab.c" /* yacc.c:355  */
+#line 425 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -424,7 +438,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 428 "y.tab.c" /* yacc.c:358  */
+#line 442 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -726,11 +740,11 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   264,   264,   267,   270,   273,   278,   327,   330,   333,
-     336,   339,   342,   346,   357,   369,   390,   397,   408,   427,
-     439,   464,   476,   480,   510,   513,   521,   551,   558,   572,
-     579,   611,   643,   675,   707,   739,   744,   767,   780,   791,
-     796,   801,   822,   832,   843,   846,   849,   852,   855,   858
+       0,   278,   278,   281,   284,   287,   292,   344,   347,   350,
+     353,   356,   359,   363,   374,   386,   407,   414,   425,   444,
+     456,   481,   493,   497,   527,   530,   538,   568,   575,   589,
+     596,   628,   660,   692,   724,   756,   761,   784,   797,   808,
+     813,   818,   839,   849,   860,   863,   866,   869,   872,   875
 };
 #endif
 
@@ -1579,58 +1593,60 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 264 "yacc.y" /* yacc.c:1646  */
+#line 278 "yacc.y" /* yacc.c:1646  */
     {
 			printf(">>>\n\n%s\n",(yyvsp[0].S).codigo);
 		}
-#line 1587 "y.tab.c" /* yacc.c:1646  */
+#line 1601 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 267 "yacc.y" /* yacc.c:1646  */
+#line 281 "yacc.y" /* yacc.c:1646  */
     {
 			printf("El tipo es: %d\n",(yyvsp[0].T).tipo);
 		}
-#line 1595 "y.tab.c" /* yacc.c:1646  */
+#line 1609 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 270 "yacc.y" /* yacc.c:1646  */
+#line 284 "yacc.y" /* yacc.c:1646  */
     {
 			
 		}
-#line 1603 "y.tab.c" /* yacc.c:1646  */
+#line 1617 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 273 "yacc.y" /* yacc.c:1646  */
+#line 287 "yacc.y" /* yacc.c:1646  */
     {
 			printf("b.trueLabel: %s\nb.falseLabel: %s\n\n",(yyvsp[0].B).trueLabel,(yyvsp[0].B).falseLabel);
 			printf(">>>\n\n%s",(yyvsp[0].B).codigo);
 		}
-#line 1612 "y.tab.c" /* yacc.c:1646  */
+#line 1626 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 278 "yacc.y" /* yacc.c:1646  */
+#line 292 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.D).tipo = (yyvsp[-1].T).tipo;
 		
 		int i;
 		
-		// Vaciado de informacion de la tabla de tipos embrión a la tabla de tipos global
+		// Vaciado de Tabla de Tipos Embrion a la Tabla de Tipos que Corresponda
+	
 		
 		for(i=0;i<(yyvsp[0].L).elementosETT;i++){
-			GTT[ETT[i].posTT].tipo = "array";
+			TT[posTT][ETT[i].typNum].tipo = "array";
 			if(ETT[i].tipoBase == -1){
-				GTT[ETT[i].posTT].tipoBase = (yyvsp[-1].T).tipo;
+				TT[posTT][ETT[i].typNum].tipoBase = (yyvsp[-1].T).tipo;
 			} else {
-				GTT[ETT[i].posTT].tipoBase = ETT[i].tipoBase;
+				TT[posTT][ETT[i].typNum].tipoBase = ETT[i].tipoBase;
 			}
-			GTT[ETT[i].posTT].dim = ETT[i].dim * getDimWithPosTT((yyvsp[-1].T).tipo,GTT);
+			TT[posTT][ETT[i].typNum].dim = ETT[i].dim * getDimWithTypNumPosTT((yyvsp[-1].T).tipo,posTT,TT);
 		}
 		
-		// Vaciado de datos de la tabla de simbolos embrion a la tabla de simbolos global
+		
+		// Vaciado de Tabla de Simbolos Embrion a la Tabla de Simbolos que Corresponda
 		
 		for(i=0;i<(yyvsp[0].L).elementosEST;i++){
 			ST[posST][symNum[posST]].lexema = EST[i].lexema;
@@ -1641,79 +1657,80 @@ yyreduce:
 			}
 			ST[posST][symNum[posST]].tipoVar = "var";
 			if(symNum[posST] > 0){
-				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithPosTT(ST[posST][symNum[posST]-1].tipo,GTT);			
+				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithTypNumPosTT(ST[posST][symNum[posST]-1].tipo,posTT,TT);		
 			} else {
 				ST[posST][symNum[posST]].dir = 0;
 			}
+			
 			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
-			   posST siempre almacene la direccion de la tabla de simbolos en donde podemos almacenar
-			   un elemeto directamente */
+			   symNum[posST] siempre almacene la direccion de la tabla de simbolos en donde podemos 
+			   almacenar un elemeto directamente */
+			   
 			symNum[posST] = symNum[posST] + 1; 
 		}
 		
-		posST++;
+		posTT++; // Apuntamos a nueva tabla de tipos
+		posST++; // Apuntamos a nueva tabla de simbolos
 		
-//		printSymbolTableII(GST,posSTT[0]);
-		printTypeTable(GTT,posTT);
-		printEmbryoSymbolTable(EST,posEST);
-		printEmbryoTypeTable(ETT,posETT);
-		printf("lo nuevo\n");
+		printTypeTable(TT,posTT,typNum);
 		printSymbolTable(ST,posST,symNum);
 		
-	}
-#line 1665 "y.tab.c" /* yacc.c:1646  */
+		printEmbryoSymbolTable(EST,posEST);
+		printEmbryoTypeTable(ETT,posETT);
+}
+#line 1682 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 327 "yacc.y" /* yacc.c:1646  */
+#line 344 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
 	}
-#line 1673 "y.tab.c" /* yacc.c:1646  */
+#line 1690 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 330 "yacc.y" /* yacc.c:1646  */
+#line 347 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT);
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1681 "y.tab.c" /* yacc.c:1646  */
+#line 1698 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 333 "yacc.y" /* yacc.c:1646  */
+#line 350 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT);
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);;
 	}
-#line 1689 "y.tab.c" /* yacc.c:1646  */
+#line 1706 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 336 "yacc.y" /* yacc.c:1646  */
+#line 353 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT);
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1697 "y.tab.c" /* yacc.c:1646  */
+#line 1714 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 339 "yacc.y" /* yacc.c:1646  */
+#line 356 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT);
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1705 "y.tab.c" /* yacc.c:1646  */
+#line 1722 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 342 "yacc.y" /* yacc.c:1646  */
+#line 359 "yacc.y" /* yacc.c:1646  */
     {
-		(yyval.T).tipo = getPos((yyvsp[0].cadena),GTT,posTT);
+		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1713 "y.tab.c" /* yacc.c:1646  */
+#line 1730 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 346 "yacc.y" /* yacc.c:1646  */
+#line 363 "yacc.y" /* yacc.c:1646  */
     {
 		if(!(yyvsp[0].C).isArray){// si no es un arreglo
 			insertIntoEmbryoSymbolTable(&posEST,(yyvsp[-1].cadena),-1,EST);
@@ -1725,11 +1742,11 @@ yyreduce:
 			(yyval.L).elementosETT = (yyvsp[-3].L).elementosETT + (yyvsp[0].C).elementosETT;
 		}
 	}
-#line 1729 "y.tab.c" /* yacc.c:1646  */
+#line 1746 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 357 "yacc.y" /* yacc.c:1646  */
+#line 374 "yacc.y" /* yacc.c:1646  */
     {
 		if(!(yyvsp[0].C).isArray){// si no es un arreglo
 			insertIntoEmbryoSymbolTable(&posEST,(yyvsp[-1].cadena),-1,EST);
@@ -1741,23 +1758,23 @@ yyreduce:
 			(yyval.L).elementosETT = (yyvsp[0].C).elementosETT;
 		}
 	}
-#line 1745 "y.tab.c" /* yacc.c:1646  */
+#line 1762 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 369 "yacc.y" /* yacc.c:1646  */
+#line 386 "yacc.y" /* yacc.c:1646  */
     {
 		if((yyvsp[-2].numero).tipo == 1){// si NUMERO es un entero
 			(yyval.C).isArray = 1; // igual a true
 			if((yyvsp[0].C).isUltimo){ // si es último
 				(yyval.C).isUltimo = 0; // igual a false
-				inserIntoEmbryoTypeTable(&posETT,&posTT,-1,(yyvsp[-2].numero).ival,ETT);
+				inserIntoEmbryoTypeTable(&posETT,&typNum[posTT],-1,(yyvsp[-2].numero).ival,ETT);
 				(yyval.C).dim = (yyvsp[-2].numero).ival;
-				(yyval.C).tipoBase = posTT - 1;
+				(yyval.C).tipoBase = typNum[posTT] - 1;
 				(yyval.C).elementosETT = 1;
 			} else { // si no es último
 				(yyval.C).isUltimo = 0; // igual a false
-				inserIntoEmbryoTypeTable(&posETT,&posTT,(yyvsp[0].C).tipoBase,(yyvsp[0].C).dim*(yyvsp[-2].numero).ival,ETT);
+				inserIntoEmbryoTypeTable(&posETT,&typNum[posTT],(yyvsp[0].C).tipoBase,(yyvsp[0].C).dim*(yyvsp[-2].numero).ival,ETT);
 				(yyval.C).tipoBase = (yyvsp[0].C).tipoBase + 1;
 				(yyval.C).dim = (yyvsp[0].C).dim*(yyvsp[-2].numero).ival;
 				(yyval.C).elementosETT = (yyvsp[0].C).elementosETT + 1;
@@ -1767,22 +1784,22 @@ yyreduce:
 			exit(1);
 		}
 	}
-#line 1771 "y.tab.c" /* yacc.c:1646  */
+#line 1788 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 390 "yacc.y" /* yacc.c:1646  */
+#line 407 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.C).isArray = 0; // igual a false
 		(yyval.C).isUltimo = 1; // igual a true
 		(yyval.C).tipoBase = 0; // No se usa solo se inicializa
 		(yyval.C).dim = 0; // No se usa solo se inicializa
 	}
-#line 1782 "y.tab.c" /* yacc.c:1646  */
+#line 1799 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 397 "yacc.y" /* yacc.c:1646  */
+#line 414 "yacc.y" /* yacc.c:1646  */
     {
 		codeSnippets[0] = (yyvsp[-2].B).codigo;
 		codeSnippets[1] = (yyvsp[-2].B).trueLabel;
@@ -1794,11 +1811,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 1798 "y.tab.c" /* yacc.c:1646  */
+#line 1815 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 408 "yacc.y" /* yacc.c:1646  */
+#line 425 "yacc.y" /* yacc.c:1646  */
     {
 		char *w;
 		w = newLabel(&etiNum);
@@ -1818,11 +1835,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,11);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 1822 "y.tab.c" /* yacc.c:1646  */
+#line 1839 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 427 "yacc.y" /* yacc.c:1646  */
+#line 444 "yacc.y" /* yacc.c:1646  */
     {
 		
 		codeSnippets[0] = (yyvsp[-2].B).trueLabel;
@@ -1835,11 +1852,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 1839 "y.tab.c" /* yacc.c:1646  */
+#line 1856 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 439 "yacc.y" /* yacc.c:1646  */
+#line 456 "yacc.y" /* yacc.c:1646  */
     {
 		
 		char *w;
@@ -1865,11 +1882,11 @@ yyreduce:
 		
 	
 	}
-#line 1869 "y.tab.c" /* yacc.c:1646  */
+#line 1886 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 464 "yacc.y" /* yacc.c:1646  */
+#line 481 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.S).next = newLabel(&etiNum);
 		
@@ -1882,20 +1899,20 @@ yyreduce:
 		
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 	}
-#line 1886 "y.tab.c" /* yacc.c:1646  */
+#line 1903 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 476 "yacc.y" /* yacc.c:1646  */
+#line 493 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.S).next = (yyvsp[-1].S).next;
 		(yyval.S).codigo = (yyvsp[-1].S).codigo;
 	}
-#line 1895 "y.tab.c" /* yacc.c:1646  */
+#line 1912 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 480 "yacc.y" /* yacc.c:1646  */
+#line 497 "yacc.y" /* yacc.c:1646  */
     {
 		
 		(yyval.S).next = newLabel(&etiNum);
@@ -1926,19 +1943,19 @@ yyreduce:
 			(yyval.S).codigo = synthesizeCode(codeSnippets,12);
 		}
 	}
-#line 1930 "y.tab.c" /* yacc.c:1646  */
+#line 1947 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 510 "yacc.y" /* yacc.c:1646  */
+#line 527 "yacc.y" /* yacc.c:1646  */
     { // S -> break;
 		(yyval.S).codigo = "";
 	}
-#line 1938 "y.tab.c" /* yacc.c:1646  */
+#line 1955 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 513 "yacc.y" /* yacc.c:1646  */
+#line 530 "yacc.y" /* yacc.c:1646  */
     {
 		codeSnippets[0] = "PARAM ";
 		codeSnippets[1] = (yyvsp[-1].E).temp;
@@ -1946,11 +1963,11 @@ yyreduce:
 		
 		(yyval.S).codigo = synthesizeCode(codeSnippets,3);
 	}
-#line 1950 "y.tab.c" /* yacc.c:1646  */
+#line 1967 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 521 "yacc.y" /* yacc.c:1646  */
+#line 538 "yacc.y" /* yacc.c:1646  */
     {
 		int i;
 		(yyval.J).next = (yyvsp[0].J).next;
@@ -1981,22 +1998,22 @@ yyreduce:
 		(yyval.J).codigo = synthesizeCode(codeSnippets,7);
 		
 	}
-#line 1985 "y.tab.c" /* yacc.c:1646  */
+#line 2002 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 551 "yacc.y" /* yacc.c:1646  */
+#line 568 "yacc.y" /* yacc.c:1646  */
     {
 		// J -> ε
 		(yyval.J).next = newLabel(&etiNum);
 		(yyval.J).indice = -1; // Para que el indice en la produccion anterior se inicie en 0
 		(yyval.J).codigo = ""; // El codigo debe ser cadena vacia para que no marque error "Violacion de Segmento"
 	}
-#line 1996 "y.tab.c" /* yacc.c:1646  */
+#line 2013 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 558 "yacc.y" /* yacc.c:1646  */
+#line 575 "yacc.y" /* yacc.c:1646  */
     {
 		// K -> default: S
 		(yyval.K).next = newLabel(&etiNum);
@@ -2011,22 +2028,22 @@ yyreduce:
 		
 		(yyval.K).codigo = synthesizeCode(codeSnippets,6);
 	}
-#line 2015 "y.tab.c" /* yacc.c:1646  */
+#line 2032 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 572 "yacc.y" /* yacc.c:1646  */
+#line 589 "yacc.y" /* yacc.c:1646  */
     {
 		// K -> ε
 		(yyval.K).next = newLabel(&etiNum);
 		(yyval.K).etiqueta = newLabel(&etiNum);
 		(yyval.K).codigo = "";
 	}
-#line 2026 "y.tab.c" /* yacc.c:1646  */
+#line 2043 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 579 "yacc.y" /* yacc.c:1646  */
+#line 596 "yacc.y" /* yacc.c:1646  */
     {
 			if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2059,11 +2076,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2063 "y.tab.c" /* yacc.c:1646  */
+#line 2080 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 611 "yacc.y" /* yacc.c:1646  */
+#line 628 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2096,11 +2113,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2100 "y.tab.c" /* yacc.c:1646  */
+#line 2117 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 643 "yacc.y" /* yacc.c:1646  */
+#line 660 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2133,11 +2150,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2137 "y.tab.c" /* yacc.c:1646  */
+#line 2154 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 675 "yacc.y" /* yacc.c:1646  */
+#line 692 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2170,11 +2187,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2174 "y.tab.c" /* yacc.c:1646  */
+#line 2191 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 707 "yacc.y" /* yacc.c:1646  */
+#line 724 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2207,21 +2224,21 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2211 "y.tab.c" /* yacc.c:1646  */
+#line 2228 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 739 "yacc.y" /* yacc.c:1646  */
+#line 756 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.E).tipo = 4;
-		(yyval.E).temp = newTempCadena(&tempNum,&posSTT[0],&posTT,GST,GTT,(yyvsp[0].cadena));
+		(yyval.E).temp = newTempCadena(&tempNum,&posSTT[0],&posTTT,GST,GTT,(yyvsp[0].cadena));
 		(yyval.E).codigo = (yyvsp[0].cadena);
 	}
-#line 2221 "y.tab.c" /* yacc.c:1646  */
+#line 2238 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 744 "yacc.y" /* yacc.c:1646  */
+#line 761 "yacc.y" /* yacc.c:1646  */
     {
 		int i;
 		char *s,buffer[30];
@@ -2244,11 +2261,11 @@ yyreduce:
 		(yyval.E).codigo = "";
 	
 	}
-#line 2248 "y.tab.c" /* yacc.c:1646  */
+#line 2265 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 767 "yacc.y" /* yacc.c:1646  */
+#line 784 "yacc.y" /* yacc.c:1646  */
     {
 		char *s,*w;
 	
@@ -2262,11 +2279,11 @@ yyreduce:
 
 		(yyval.B).codigo = synthesizeCode(codeSnippets,4);
 	}
-#line 2266 "y.tab.c" /* yacc.c:1646  */
+#line 2283 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 780 "yacc.y" /* yacc.c:1646  */
+#line 797 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[0].B).trueLabel;
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2278,31 +2295,31 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,4);		
 	}
-#line 2282 "y.tab.c" /* yacc.c:1646  */
+#line 2299 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 791 "yacc.y" /* yacc.c:1646  */
+#line 808 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[0].B).falseLabel;
 		(yyval.B).falseLabel = (yyvsp[0].B).trueLabel;
 		(yyval.B).codigo = (yyvsp[0].B).codigo;
 	}
-#line 2292 "y.tab.c" /* yacc.c:1646  */
+#line 2309 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 796 "yacc.y" /* yacc.c:1646  */
+#line 813 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[-1].B).trueLabel;
 		(yyval.B).falseLabel = (yyvsp[-1].B).falseLabel;
 		(yyval.B).codigo = (yyvsp[-1].B).codigo;
 	}
-#line 2302 "y.tab.c" /* yacc.c:1646  */
+#line 2319 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 801 "yacc.y" /* yacc.c:1646  */
+#line 818 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2324,11 +2341,11 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,14);
 	}
-#line 2328 "y.tab.c" /* yacc.c:1646  */
+#line 2345 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 822 "yacc.y" /* yacc.c:1646  */
+#line 839 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2339,11 +2356,11 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,3);
 	}
-#line 2343 "y.tab.c" /* yacc.c:1646  */
+#line 2360 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 832 "yacc.y" /* yacc.c:1646  */
+#line 849 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2354,59 +2371,59 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,3);
 	}
-#line 2358 "y.tab.c" /* yacc.c:1646  */
+#line 2375 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 843 "yacc.y" /* yacc.c:1646  */
+#line 860 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "<";
 	}
-#line 2366 "y.tab.c" /* yacc.c:1646  */
+#line 2383 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 846 "yacc.y" /* yacc.c:1646  */
+#line 863 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = ">";
 	}
-#line 2374 "y.tab.c" /* yacc.c:1646  */
+#line 2391 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 849 "yacc.y" /* yacc.c:1646  */
+#line 866 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "<=";
 	}
-#line 2382 "y.tab.c" /* yacc.c:1646  */
+#line 2399 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 852 "yacc.y" /* yacc.c:1646  */
+#line 869 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = ">=";
 	}
-#line 2390 "y.tab.c" /* yacc.c:1646  */
+#line 2407 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 855 "yacc.y" /* yacc.c:1646  */
+#line 872 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "!=";
 	}
-#line 2398 "y.tab.c" /* yacc.c:1646  */
+#line 2415 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 858 "yacc.y" /* yacc.c:1646  */
+#line 875 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "==";
 	}
-#line 2406 "y.tab.c" /* yacc.c:1646  */
+#line 2423 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2410 "y.tab.c" /* yacc.c:1646  */
+#line 2427 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2634,12 +2651,16 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 862 "yacc.y" /* yacc.c:1906  */
+#line 879 "yacc.y" /* yacc.c:1906  */
 
 
 
 extern FILE *yyin;
 extern int yylineno;
+
+///////////////////////////////////////////////////////////
+//////////////////// MAIN /////////////////////////////////
+///////////////////////////////////////////////////////////
 
 int main(int argc,char **argv){
 	if(argc > 1){
@@ -2647,17 +2668,21 @@ int main(int argc,char **argv){
 	}
 ////// INICIALIZACIONES //////
 	posSTT[0] = 0;
-	initGlobalTypeTable(GTT,&posTT);
+	initTypeTable(TT,typNum);
 	
 	yyparse();
 	return 0;
 }
 
-// MIS FUNCIONES
+//////////////////////////////////////////////////////////
+//// MIS FUNCIONES ///////////////////////////////////////
+//////////////////////////////////////////////////////////
 
-void yyerror(char *s){
-	printf("%s::line:%d\n",s,yylineno-1);
-}
+////// MANEJO DE ERRORES /////////////////////////////////
+
+	void yyerror(char *s){
+		printf("%s::line:%d\n",s,yylineno-1);
+	}
 
 ////// TABLA DE SIMBOLOS //////
 
@@ -2688,40 +2713,110 @@ void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 ////// TABLA DE TIPOS //////
 
 
-void initGlobalTypeTable(typeTable GTT[],int* posTT){
-//void
-	GTT[0].tipo = "void";
-	GTT[0].tipoBase = -1;
-	GTT[0].dim = -1;
-// int
-	GTT[1].tipo = "int";
-	GTT[1].tipoBase = -1;
-	GTT[1].dim = 4;
-// float
-	GTT[2].tipo = "float";
-	GTT[2].tipoBase = -1;
-	GTT[2].dim = 8;
-// double
-	GTT[3].tipo = "double";
-	GTT[3].tipoBase = -1;
-	GTT[3].dim = 8;
-// char
-	GTT[4].tipo = "char";
-	GTT[4].tipoBase = -1;
-	GTT[4].dim = 1;
+void initTypeTable(typeTable TT[][1000],int typNum[]){
+	int i;
+	for(i=0;i<50;i++){
+
+	// void
+		TT[i][0].tipo = "void";
+		TT[i][0].tipoBase = -1;
+		TT[i][0].dim = -1;
 	
-	*posTT = 5;
+	// int
+
+		TT[i][1].tipo = "int";
+		TT[i][1].tipoBase = -1;
+		TT[i][1].dim = 4;
+	
+	// float
+
+		TT[i][2].tipo = "float";
+		TT[i][2].tipoBase = -1;
+		TT[i][2].dim = 8;
+	
+	// double
+
+		TT[i][3].tipo = "double";
+		TT[i][3].tipoBase = -1;
+		TT[i][3].dim = 8;
+
+	// char
+
+		TT[i][4].tipo = "char";
+		TT[i][4].tipoBase = -1;
+		TT[i][4].dim = 1;
+	
+		typNum[i] = 5;
+	}	
 }
 
-void printTypeTable(typeTable TT[],int posTT){
+void printTypeTableII(typeTable TT[],int posTTT){
 	int i;
 	printf("\npos\ttipo\ttipoBase\tdim\n\n");
-	for(i=0;i<posTT;i++){
+	for(i=0;i<posTTT;i++){
 		printf("%d\t%s\t  %d\t\t%d\n",i,TT[i].tipo,TT[i].tipoBase,TT[i].dim);	
 	}		
 }
 
-////// //////
+
+void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
+	int i,j;
+	for(i=0;i<posTT;i++){
+		printf("\npos\ttipo\ttipoBase\tdim\n\n");
+		for(j=0;j<typNum[i];j++){
+			printf("%d\t%s\t%d\t\t%d\n",
+				j,
+				TT[i][j].tipo,
+				TT[i][j].tipoBase,
+				TT[i][j].dim);
+		}
+		printf("\n");
+	}
+}
+
+/* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento
+   y la cadena tipo de la tabla de tipos coinciden (la posicion en la tabla de tipos hace
+   alucion a el tipo de la variable en si. por ejemplo la posicion 1 es el tipo int si en 
+   la tabla de simbolos alguna variable tiene en su campo tipo 1 significa que es de tipo
+   int y ya con ese valor se puede obtener informacion en la tabla de tipos posicion 1) */
+
+int getPos(char* tipo,typeTable GTT[],int posTTT){
+	int i;
+	for(i=0;i<posTTT;i++){
+		if(strcmp(tipo,GTT[i].tipo) == 0)
+			return i;
+	}
+	return -1;
+}
+
+/* Retorna un entero que representa la posicion en la tabla de tipos en donde esta contenida
+   la informacion respecto a un cierto tipo de datos. Este entero se obtiene comparando la
+   cadena que se recibe de parametro (*typeStr) con las cadenas (*tipo) de la tabla de tipos
+   para una tabla de simbolos dada (posTT), cuando estas cadenas coinciden se regresa el valor
+   del segundo subindice de la tabla de tipos que representa el tipo correspondiente */
+
+int getTypeWithTypeStr(char *typeStr,int posTT,typeTable TT[][1000]){
+	int i;
+	for(i=0;i<typNum[posTT];i++){
+		if(strcmp(typeStr,TT[posTT][i].tipo) == 0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+int getDimWithposTTT(int posTTT,typeTable GTT[]){
+	return GTT[posTTT].dim;
+}
+
+int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]){
+	return TT[posTT][typNum].dim;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// FUNCIONES VARIAS////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 char* synthesizeCode(char* codeSnippets[],int codeSnippetsNum){
 	int length = 0,i;
@@ -2858,33 +2953,16 @@ int maxType(int e1Type,int e2Type){
 		return e2Type;
 }
 
-int getDim(char* tipo,typeTable GTT[],int posTT){
+int getDim(char* tipo,typeTable GTT[],int posTTT){
 	int i;
-	for(i=0;i<posTT;i++){
+	for(i=0;i<posTTT;i++){
 		if(strcmp(tipo,GTT[i].tipo) == 0)
 			return GTT[i].dim;
 	}
 	return -1;
 }
 
-/* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento
-   y la cadena tipo de la tabla de tipos coinciden (la posicion en la tabla de tipos hace
-   alucion a el tipo de la variable en si. por ejemplo la posicion 1 es el tipo int si en 
-   la tabla de simbolos alguna variable tiene en su campo tipo 1 significa que es de tipo
-   int y ya con ese valor se puede obtener informacion en la tabla de tipos posicion 1) */
 
-int getPos(char* tipo,typeTable GTT[],int posTT){
-	int i;
-	for(i=0;i<posTT;i++){
-		if(strcmp(tipo,GTT[i].tipo) == 0)
-			return i;
-	}
-	return -1;
-}
-
-int getDimWithPosTT(int posTT,typeTable GTT[]){
-	return GTT[posTT].dim;
-}
 
 bool isEmptyStr(char* s){
 	int n;
@@ -2990,7 +3068,7 @@ char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
    de la cadena y coloca como tipo el que se definio anteriormente en la tabla de tipos, finalmente regresa un
    apuntador a cadena que apunta a la nueva etiquera que se acaba de definir */
 
-char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema){
+char* newTempCadena(int* tempNum,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema){
 	int i = 0;
 	char buffer[30];
 	char *s;
@@ -2999,9 +3077,9 @@ char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTab
 	
 	// Tabla de Tipos
 	
-	GTT[*posTT].tipo = "array";
-	GTT[*posTT].tipoBase = 4;
-	GTT[*posTT].dim = (int) strlen(cadenaLexema);
+	GTT[*posTTT].tipo = "array";
+	GTT[*posTTT].tipoBase = 4;
+	GTT[*posTTT].dim = (int) strlen(cadenaLexema);
 	
 	// Tabla de Simbolos
 	
@@ -3009,17 +3087,17 @@ char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTab
 	s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
 	strcpy(s,buffer);
 	GST[*posST].lexema = s;
-	GST[*posST].tipo = *posTT;
+	GST[*posST].tipo = *posTTT;
 	GST[*posST].tipoVar = "tempStr";
 	if(*posST > 0)
-		GST[*posST].dir = GST[*posST-1].dir + GTT[*posTT].dim;
+		GST[*posST].dir = GST[*posST-1].dir + GTT[*posTTT].dim;
 	else
 		GST[*posST].dir = 0;
 	
 	// Preparo variables de posicion de las tablas y contador de temporales para su nuevo uso
 	
 	*posST = *posST + 1;
-	*posTT = *posTT + 1;
+	*posTTT = *posTTT + 1;
 	*tempNum = *tempNum + 1;
 	
 	return s;
@@ -3050,20 +3128,20 @@ void printEmbryoSymbolTable(embryoST EST[],int posEST){
 
 ////// FUNCIONES PARA LA TABLA DE TIPOS EMBRIÓN //////
 
-void inserIntoEmbryoTypeTable(int *posETT,int *posTT,int baseType,int dim,embryoTT ETT[]){
-	ETT[*posETT].posTT = *posTT;
+void inserIntoEmbryoTypeTable(int *posETT,int *typNum,int baseType,int dim,embryoTT ETT[]){
+	ETT[*posETT].typNum = *typNum;
 	ETT[*posETT].tipoBase = baseType;
 	ETT[*posETT].dim = dim;
 	
 	*posETT = *posETT + 1;
-	*posTT = *posTT + 1;
+	*typNum = *typNum + 1;
 }
 
 void printEmbryoTypeTable(embryoTT ETT[],int posETT){
 	int i;
-	printf("\nposETT\tposTT\ttipoBase\tdim\n\n");
+	printf("\nposETT\ttypNum\ttipoBase\tdim\n\n");
 	for(i=0;i<posETT;i++){
-		printf("%d\t%d\t%d\t\t%d\n",i,ETT[i].posTT,ETT[i].tipoBase,ETT[i].dim);
+		printf("%d\t%d\t%d\t\t%d\n",i,ETT[i].typNum,ETT[i].tipoBase,ETT[i].dim);
 	}
 }
 

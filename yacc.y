@@ -45,8 +45,22 @@
 /*BORRAR*/
 	typeTable GTT[1000]; // Tabla de tipos global hasta 1,000 elementos
 	
-	int posTT; // Control de las posiciones de la tabla de tipos
+	int posTTT; // Control de las posiciones de la tabla de tipos
 /*BORRAR*/
+
+	typeTable TT[50][1000];
+	
+	int posTT;
+	int typNum[50];
+	
+	// Regresa la dimension de un tipo dada su coordenada posTT & typNum de la Tabla de Tipos
+	
+	int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]);
+	int getTypeWithTypeStr(char *typeStr,int posTT,typeTable TT[][1000]);
+	
+	void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]);
+	
+
 
 ////// TABLA DE SIMBOLOS EMBRIÓN //////
 
@@ -65,7 +79,7 @@
 ////// TABLA DE TIPOS EMBRIÓN //////
 	
 	typedef struct{
-		int posTT;
+		int typNum;
 		int tipoBase;
 		int dim;
 	}embryoTT;
@@ -74,7 +88,7 @@
 
 	int posETT = 0;
 
-	void inserIntoEmbryoTypeTable(int *posETT,int *posTT,int baseType,int dim,embryoTT ETT[]);
+	void inserIntoEmbryoTypeTable(int *posETT,int *typNum,int baseType,int dim,embryoTT ETT[]);
 	void printEmbryoTypeTable(embryoTT ETT[],int posETT);
 	
 	 
@@ -94,8 +108,8 @@
 
 	////// TABLAL DE TIPOS //////
 	
-	void initGlobalTypeTable(typeTable GTT[],int* posTT);
-	void printTypeTable(typeTable TT[],int posTT);
+	void initTypeTable(typeTable TT[][1000],int typNum[]);
+	void printTypeTableII(typeTable TT[],int posTTT);
 	
 	////// //////
 	
@@ -111,8 +125,8 @@
 	bool isFloat(int tipo);
 	bool isDouble(int tipo);
 	
-	int getPos(char* tipo,typeTable GTT[],int posTT);
-	int getDimWithPosTT(int posTT,typeTable GTT[]);
+	int getPos(char* tipo,typeTable GTT[],int posTTT);
+	int getDimWithposTTT(int posTTT,typeTable GTT[]);
 	
 	////// FUNCIONES PARA EL NO TERMINAL S //////
 	
@@ -122,12 +136,12 @@
 	
 	bool isNumero(int eType);
 	int maxType(int e1Type,int e2Type);
-	int getDim(char* tipo,typeTable GTT[],int posTT);
+	int getDim(char* tipo,typeTable GTT[],int posTTT);
 	bool isEmptyStr(char* s);
 	char* changeStr(char* numStr,int originType);
 	char* newTempNumero(int* tempNum,int* posST,symbolTable GST[],int eType);
 	char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType);
-	char* newTempCadena(int* temp,int* posST,int* posTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
+	char* newTempCadena(int* temp,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema);
 		
 %}
 
@@ -280,19 +294,21 @@ d : t l {
 		
 		int i;
 		
-		// Vaciado de informacion de la tabla de tipos embrión a la tabla de tipos global
+		// Vaciado de Tabla de Tipos Embrion a la Tabla de Tipos que Corresponda
+	
 		
 		for(i=0;i<$2.elementosETT;i++){
-			GTT[ETT[i].posTT].tipo = "array";
+			TT[posTT][ETT[i].typNum].tipo = "array";
 			if(ETT[i].tipoBase == -1){
-				GTT[ETT[i].posTT].tipoBase = $1.tipo;
+				TT[posTT][ETT[i].typNum].tipoBase = $1.tipo;
 			} else {
-				GTT[ETT[i].posTT].tipoBase = ETT[i].tipoBase;
+				TT[posTT][ETT[i].typNum].tipoBase = ETT[i].tipoBase;
 			}
-			GTT[ETT[i].posTT].dim = ETT[i].dim * getDimWithPosTT($1.tipo,GTT);
+			TT[posTT][ETT[i].typNum].dim = ETT[i].dim * getDimWithTypNumPosTT($1.tipo,posTT,TT);
 		}
 		
-		// Vaciado de datos de la tabla de simbolos embrion a la tabla de simbolos global
+		
+		// Vaciado de Tabla de Simbolos Embrion a la Tabla de Simbolos que Corresponda
 		
 		for(i=0;i<$2.elementosEST;i++){
 			ST[posST][symNum[posST]].lexema = EST[i].lexema;
@@ -303,44 +319,45 @@ d : t l {
 			}
 			ST[posST][symNum[posST]].tipoVar = "var";
 			if(symNum[posST] > 0){
-				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithPosTT(ST[posST][symNum[posST]-1].tipo,GTT);			
+				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithTypNumPosTT(ST[posST][symNum[posST]-1].tipo,posTT,TT);		
 			} else {
 				ST[posST][symNum[posST]].dir = 0;
 			}
+			
 			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
-			   posST siempre almacene la direccion de la tabla de simbolos en donde podemos almacenar
-			   un elemeto directamente */
+			   symNum[posST] siempre almacene la direccion de la tabla de simbolos en donde podemos 
+			   almacenar un elemeto directamente */
+			   
 			symNum[posST] = symNum[posST] + 1; 
 		}
 		
-		posST++;
+		posTT++; // Apuntamos a nueva tabla de tipos
+		posST++; // Apuntamos a nueva tabla de simbolos
 		
-//		printSymbolTableII(GST,posSTT[0]);
-		printTypeTable(GTT,posTT);
-		printEmbryoSymbolTable(EST,posEST);
-		printEmbryoTypeTable(ETT,posETT);
-		printf("lo nuevo\n");
+		printTypeTable(TT,posTT,typNum);
 		printSymbolTable(ST,posST,symNum);
 		
-	};
+		printEmbryoSymbolTable(EST,posEST);
+		printEmbryoTypeTable(ETT,posETT);
+};
 
 t : VOID {
-		$$.tipo = getPos($1,GTT,posTT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
 	}
 	| INT {
-		$$.tipo = getPos($1,GTT,posTT);
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT);
 	}
 	| FLOAT {
-		$$.tipo = getPos($1,GTT,posTT);
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT);;
 	}
 	| DOUBLE {
-		$$.tipo = getPos($1,GTT,posTT);
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT);
 	}
 	| CHAR {
-		$$.tipo = getPos($1,GTT,posTT);
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT);
 	}
 	| STRUCT {
-		$$.tipo = getPos($1,GTT,posTT);
+		$$.tipo = getTypeWithTypeStr($1,posTT,TT);
 	};
 	
 l : l COMA ID c {
@@ -371,13 +388,13 @@ c : LCHT NUMERO RCHT c {
 			$$.isArray = 1; // igual a true
 			if($4.isUltimo){ // si es último
 				$$.isUltimo = 0; // igual a false
-				inserIntoEmbryoTypeTable(&posETT,&posTT,-1,$2.ival,ETT);
+				inserIntoEmbryoTypeTable(&posETT,&typNum[posTT],-1,$2.ival,ETT);
 				$$.dim = $2.ival;
-				$$.tipoBase = posTT - 1;
+				$$.tipoBase = typNum[posTT] - 1;
 				$$.elementosETT = 1;
 			} else { // si no es último
 				$$.isUltimo = 0; // igual a false
-				inserIntoEmbryoTypeTable(&posETT,&posTT,$4.tipoBase,$4.dim*$2.ival,ETT);
+				inserIntoEmbryoTypeTable(&posETT,&typNum[posTT],$4.tipoBase,$4.dim*$2.ival,ETT);
 				$$.tipoBase = $4.tipoBase + 1;
 				$$.dim = $4.dim*$2.ival;
 				$$.elementosETT = $4.elementosETT + 1;
@@ -738,7 +755,7 @@ e : e SUM e {
 	}
 	| CADENA {
 		$$.tipo = 4;
-		$$.temp = newTempCadena(&tempNum,&posSTT[0],&posTT,GST,GTT,$1);
+		$$.temp = newTempCadena(&tempNum,&posSTT[0],&posTTT,GST,GTT,$1);
 		$$.codigo = $1;
 	}
 	| NUMERO {
@@ -865,23 +882,31 @@ r : MNRQ {
 extern FILE *yyin;
 extern int yylineno;
 
+///////////////////////////////////////////////////////////
+//////////////////// MAIN /////////////////////////////////
+///////////////////////////////////////////////////////////
+
 int main(int argc,char **argv){
 	if(argc > 1){
 		yyin = fopen(argv[1],"r");	
 	}
 ////// INICIALIZACIONES //////
 	posSTT[0] = 0;
-	initGlobalTypeTable(GTT,&posTT);
+	initTypeTable(TT,typNum);
 	
 	yyparse();
 	return 0;
 }
 
-// MIS FUNCIONES
+//////////////////////////////////////////////////////////
+//// MIS FUNCIONES ///////////////////////////////////////
+//////////////////////////////////////////////////////////
 
-void yyerror(char *s){
-	printf("%s::line:%d\n",s,yylineno-1);
-}
+////// MANEJO DE ERRORES /////////////////////////////////
+
+	void yyerror(char *s){
+		printf("%s::line:%d\n",s,yylineno-1);
+	}
 
 ////// TABLA DE SIMBOLOS //////
 
@@ -912,40 +937,110 @@ void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 ////// TABLA DE TIPOS //////
 
 
-void initGlobalTypeTable(typeTable GTT[],int* posTT){
-//void
-	GTT[0].tipo = "void";
-	GTT[0].tipoBase = -1;
-	GTT[0].dim = -1;
-// int
-	GTT[1].tipo = "int";
-	GTT[1].tipoBase = -1;
-	GTT[1].dim = 4;
-// float
-	GTT[2].tipo = "float";
-	GTT[2].tipoBase = -1;
-	GTT[2].dim = 8;
-// double
-	GTT[3].tipo = "double";
-	GTT[3].tipoBase = -1;
-	GTT[3].dim = 8;
-// char
-	GTT[4].tipo = "char";
-	GTT[4].tipoBase = -1;
-	GTT[4].dim = 1;
+void initTypeTable(typeTable TT[][1000],int typNum[]){
+	int i;
+	for(i=0;i<50;i++){
+
+	// void
+		TT[i][0].tipo = "void";
+		TT[i][0].tipoBase = -1;
+		TT[i][0].dim = -1;
 	
-	*posTT = 5;
+	// int
+
+		TT[i][1].tipo = "int";
+		TT[i][1].tipoBase = -1;
+		TT[i][1].dim = 4;
+	
+	// float
+
+		TT[i][2].tipo = "float";
+		TT[i][2].tipoBase = -1;
+		TT[i][2].dim = 8;
+	
+	// double
+
+		TT[i][3].tipo = "double";
+		TT[i][3].tipoBase = -1;
+		TT[i][3].dim = 8;
+
+	// char
+
+		TT[i][4].tipo = "char";
+		TT[i][4].tipoBase = -1;
+		TT[i][4].dim = 1;
+	
+		typNum[i] = 5;
+	}	
 }
 
-void printTypeTable(typeTable TT[],int posTT){
+void printTypeTableII(typeTable TT[],int posTTT){
 	int i;
 	printf("\npos\ttipo\ttipoBase\tdim\n\n");
-	for(i=0;i<posTT;i++){
+	for(i=0;i<posTTT;i++){
 		printf("%d\t%s\t  %d\t\t%d\n",i,TT[i].tipo,TT[i].tipoBase,TT[i].dim);	
 	}		
 }
 
-////// //////
+
+void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
+	int i,j;
+	for(i=0;i<posTT;i++){
+		printf("\npos\ttipo\ttipoBase\tdim\n\n");
+		for(j=0;j<typNum[i];j++){
+			printf("%d\t%s\t%d\t\t%d\n",
+				j,
+				TT[i][j].tipo,
+				TT[i][j].tipoBase,
+				TT[i][j].dim);
+		}
+		printf("\n");
+	}
+}
+
+/* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento
+   y la cadena tipo de la tabla de tipos coinciden (la posicion en la tabla de tipos hace
+   alucion a el tipo de la variable en si. por ejemplo la posicion 1 es el tipo int si en 
+   la tabla de simbolos alguna variable tiene en su campo tipo 1 significa que es de tipo
+   int y ya con ese valor se puede obtener informacion en la tabla de tipos posicion 1) */
+
+int getPos(char* tipo,typeTable GTT[],int posTTT){
+	int i;
+	for(i=0;i<posTTT;i++){
+		if(strcmp(tipo,GTT[i].tipo) == 0)
+			return i;
+	}
+	return -1;
+}
+
+/* Retorna un entero que representa la posicion en la tabla de tipos en donde esta contenida
+   la informacion respecto a un cierto tipo de datos. Este entero se obtiene comparando la
+   cadena que se recibe de parametro (*typeStr) con las cadenas (*tipo) de la tabla de tipos
+   para una tabla de simbolos dada (posTT), cuando estas cadenas coinciden se regresa el valor
+   del segundo subindice de la tabla de tipos que representa el tipo correspondiente */
+
+int getTypeWithTypeStr(char *typeStr,int posTT,typeTable TT[][1000]){
+	int i;
+	for(i=0;i<typNum[posTT];i++){
+		if(strcmp(typeStr,TT[posTT][i].tipo) == 0){
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+int getDimWithposTTT(int posTTT,typeTable GTT[]){
+	return GTT[posTTT].dim;
+}
+
+int getDimWithTypNumPosTT(int typNum,int posTT,typeTable TT[][1000]){
+	return TT[posTT][typNum].dim;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////// FUNCIONES VARIAS////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 char* synthesizeCode(char* codeSnippets[],int codeSnippetsNum){
 	int length = 0,i;
@@ -1082,33 +1177,16 @@ int maxType(int e1Type,int e2Type){
 		return e2Type;
 }
 
-int getDim(char* tipo,typeTable GTT[],int posTT){
+int getDim(char* tipo,typeTable GTT[],int posTTT){
 	int i;
-	for(i=0;i<posTT;i++){
+	for(i=0;i<posTTT;i++){
 		if(strcmp(tipo,GTT[i].tipo) == 0)
 			return GTT[i].dim;
 	}
 	return -1;
 }
 
-/* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento
-   y la cadena tipo de la tabla de tipos coinciden (la posicion en la tabla de tipos hace
-   alucion a el tipo de la variable en si. por ejemplo la posicion 1 es el tipo int si en 
-   la tabla de simbolos alguna variable tiene en su campo tipo 1 significa que es de tipo
-   int y ya con ese valor se puede obtener informacion en la tabla de tipos posicion 1) */
 
-int getPos(char* tipo,typeTable GTT[],int posTT){
-	int i;
-	for(i=0;i<posTT;i++){
-		if(strcmp(tipo,GTT[i].tipo) == 0)
-			return i;
-	}
-	return -1;
-}
-
-int getDimWithPosTT(int posTT,typeTable GTT[]){
-	return GTT[posTT].dim;
-}
 
 bool isEmptyStr(char* s){
 	int n;
@@ -1214,7 +1292,7 @@ char* newTempCaracter(int* tempNum,int* posST,symbolTable GST[],int eType){
    de la cadena y coloca como tipo el que se definio anteriormente en la tabla de tipos, finalmente regresa un
    apuntador a cadena que apunta a la nueva etiquera que se acaba de definir */
 
-char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema){
+char* newTempCadena(int* tempNum,int* posST,int* posTTT,symbolTable GST[],typeTable GTT[],char* cadenaLexema){
 	int i = 0;
 	char buffer[30];
 	char *s;
@@ -1223,9 +1301,9 @@ char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTab
 	
 	// Tabla de Tipos
 	
-	GTT[*posTT].tipo = "array";
-	GTT[*posTT].tipoBase = 4;
-	GTT[*posTT].dim = (int) strlen(cadenaLexema);
+	GTT[*posTTT].tipo = "array";
+	GTT[*posTTT].tipoBase = 4;
+	GTT[*posTTT].dim = (int) strlen(cadenaLexema);
 	
 	// Tabla de Simbolos
 	
@@ -1233,17 +1311,17 @@ char* newTempCadena(int* tempNum,int* posST,int* posTT,symbolTable GST[],typeTab
 	s = (char*) malloc(sizeof(char)*(strlen(buffer) + 1));
 	strcpy(s,buffer);
 	GST[*posST].lexema = s;
-	GST[*posST].tipo = *posTT;
+	GST[*posST].tipo = *posTTT;
 	GST[*posST].tipoVar = "tempStr";
 	if(*posST > 0)
-		GST[*posST].dir = GST[*posST-1].dir + GTT[*posTT].dim;
+		GST[*posST].dir = GST[*posST-1].dir + GTT[*posTTT].dim;
 	else
 		GST[*posST].dir = 0;
 	
 	// Preparo variables de posicion de las tablas y contador de temporales para su nuevo uso
 	
 	*posST = *posST + 1;
-	*posTT = *posTT + 1;
+	*posTTT = *posTTT + 1;
 	*tempNum = *tempNum + 1;
 	
 	return s;
@@ -1274,20 +1352,20 @@ void printEmbryoSymbolTable(embryoST EST[],int posEST){
 
 ////// FUNCIONES PARA LA TABLA DE TIPOS EMBRIÓN //////
 
-void inserIntoEmbryoTypeTable(int *posETT,int *posTT,int baseType,int dim,embryoTT ETT[]){
-	ETT[*posETT].posTT = *posTT;
+void inserIntoEmbryoTypeTable(int *posETT,int *typNum,int baseType,int dim,embryoTT ETT[]){
+	ETT[*posETT].typNum = *typNum;
 	ETT[*posETT].tipoBase = baseType;
 	ETT[*posETT].dim = dim;
 	
 	*posETT = *posETT + 1;
-	*posTT = *posTT + 1;
+	*typNum = *typNum + 1;
 }
 
 void printEmbryoTypeTable(embryoTT ETT[],int posETT){
 	int i;
-	printf("\nposETT\tposTT\ttipoBase\tdim\n\n");
+	printf("\nposETT\ttypNum\ttipoBase\tdim\n\n");
 	for(i=0;i<posETT;i++){
-		printf("%d\t%d\t%d\t\t%d\n",i,ETT[i].posTT,ETT[i].tipoBase,ETT[i].dim);
+		printf("%d\t%d\t%d\t\t%d\n",i,ETT[i].typNum,ETT[i].tipoBase,ETT[i].dim);
 	}
 }
 
