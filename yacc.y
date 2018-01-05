@@ -163,6 +163,40 @@
 		bool isArray;
 	};
 	
+/////////////////////////////////////
+////// TABLA DE FUNCIONES ///////////
+/////////////////////////////////////
+	
+	typedef struct{
+		char* lexema;
+		int tipoRet;
+		int numParams;
+		struct params *parametros;
+	}functionTable;
+	
+	int posFT;
+	functionTable FT[50];
+	
+	void insertIntoFT(int *posFT,
+						char *lexeme,
+						int retType,
+						int paramsNum,
+						struct params *x,
+						functionTable FT[]);
+	
+	void printFunctionTable(functionTable FT[],int posFT){
+		int i;
+		printf("pos\tlexema\ttipoRet\tnumParams\tparams\n\n");
+		for(i=0;i<posFT;i++){
+			printf("%d\t%s\t%d\t%d\t%p\n",
+					i,
+					FT[i].lexema,
+					FT[i].tipoRet,
+					FT[i].numParams,
+					FT[i].parametros);
+		}
+	}
+		
 %}
 
 %union {
@@ -194,6 +228,10 @@
 		int dim;
 		int elementosETT;
 	}C;
+	
+	struct {
+		char *codigo;
+	}F;
 
 	struct {
 		int numParams;
@@ -226,6 +264,7 @@
 	struct {
 		char *next; // cadena/etiqueta situada en el proximo codigo a ejecutarse
 		char *codigo; //cadena que guarda el codigo
+		int tipoRet;
 	}S;
 
 	struct {
@@ -297,6 +336,7 @@
 %type<L> l
 %type<C> c
 
+%type<F> f
 %type<A> a
 %type<G> g
 %type<I> i
@@ -338,6 +378,12 @@ inicio :  s {
 			
 			printTypeTable(TT,posTT,typNum);
 			printSymbolTable(ST,posST,symNum);
+		}
+		| f {
+			printf("Codigo F: %s\n",$1.codigo);
+			printTypeTable(TT,posTT,typNum);
+			printSymbolTable(ST,posST,symNum);
+			printFunctionTable(FT,posFT);
 		};
 
 d : t l {
@@ -385,11 +431,11 @@ d : t l {
 		posTT++; // Apuntamos a nueva tabla de tipos
 		posST++; // Apuntamos a nueva tabla de simbolos
 		
-		printTypeTable(TT,posTT,typNum);
-		printSymbolTable(ST,posST,symNum);
+	//	printTypeTable(TT,posTT,typNum);
+	//	printSymbolTable(ST,posST,symNum);
 		
-		printEmbryoSymbolTable(EST,posEST);
-		printEmbryoTypeTable(ETT,posETT);
+	//	printEmbryoSymbolTable(EST,posEST);
+	//	printEmbryoTypeTable(ETT,posETT);
 };
 
 t : VOID {
@@ -460,6 +506,20 @@ c : LCHT NUMERO RCHT c {
 		$$.isUltimo = 1; // igual a true
 		$$.tipoBase = 0; // No se usa solo se inicializa
 		$$.dim = 0; // No se usa solo se inicializa
+	};
+	
+f : FUNC t ID LPAR a RPAR LLLVE d s RLLVE f {
+		insertIntoFT(&posFT,$3,$9.tipoRet,$5.numParams,$5.parametros,FT);
+		
+		codeSnippets[0] = $3;
+		codeSnippets[1] = ":\n";
+		codeSnippets[2] = $9.codigo;
+		codeSnippets[3] = $11.codigo;
+		
+		$$.codigo = synthesizeCode(codeSnippets,4);
+	}
+	| {
+		$$.codigo = "";
 	};
 
 a : g {
@@ -583,6 +643,11 @@ s : IF LPAR b RPAR s {
 		codeSnippets[5] = "\n";
 		
 		$$.codigo = synthesizeCode(codeSnippets,6);
+	}
+	| RETURN PCMA {
+		$$.next = newLabel(&etiNum);
+		$$.codigo = "AGUIMAWE\n";
+		$$.tipoRet = 11;
 	}
 	| LLLVE s RLLVE{
 		$$.next = $2.next;
@@ -1092,6 +1157,19 @@ void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
 		}
 		printf("\n");
 	}
+}
+
+//*********************************************************
+//*****	 TABLA DE FUNCIONES *******************************
+//*********************************************************
+
+void insertIntoFT(int *posFT,char *lexeme,int retType,int paramsNum,struct params *x,functionTable FT[]){
+		FT[*posFT].lexema = lexeme;
+		FT[*posFT].tipoRet = retType;
+		FT[*posFT].numParams = paramsNum;
+		FT[*posFT].parametros = x;
+		
+		*posFT = *posFT + 1;
 }
 
 /* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento

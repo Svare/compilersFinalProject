@@ -1,1 +1,12 @@
-int x,char i,double w[][],int a,float rt[][][][][]
+ 
+func int main(int a,double b,char y[][][]){
+	int c,d,j[5][3],w[9][2][3]
+
+	return;
+}
+
+func double yamon(int r,double s){
+	int h,o
+
+	return;
+}

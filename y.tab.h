@@ -152,7 +152,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 168 "yacc.y" /* yacc.c:1909  */
+#line 202 "yacc.y" /* yacc.c:1909  */
 
 
 	struct {
@@ -182,6 +182,10 @@ union YYSTYPE
 		int dim;
 		int elementosETT;
 	}C;
+	
+	struct {
+		char *codigo;
+	}F;
 
 	struct {
 		int numParams;
@@ -214,6 +218,7 @@ union YYSTYPE
 	struct {
 		char *next; // cadena/etiqueta situada en el proximo codigo a ejecutarse
 		char *codigo; //cadena que guarda el codigo
+		int tipoRet;
 	}S;
 
 	struct {
@@ -236,7 +241,7 @@ union YYSTYPE
 	char caracter;
 	
 
-#line 240 "y.tab.h" /* yacc.c:1909  */
+#line 245 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
