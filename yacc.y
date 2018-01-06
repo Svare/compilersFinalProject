@@ -176,6 +176,8 @@
 					symbolTable ST[][1000],
 					typeTable TT[][1000],
 					char* cadenaLexema);
+					
+	int mergeRetType(int type1, int type2);
 	
 	////// NO TERMIANAL G //////
 	
@@ -202,6 +204,7 @@
 		int tipoRet;
 		int numParams;
 		struct params *parametros;
+		int posTablas;
 	}functionTable;
 	
 	int posFT;
@@ -212,19 +215,24 @@
 						int retType,
 						int paramsNum,
 						struct params *x,
-						functionTable FT[]);
+						functionTable FT[],
+						int posTS);
+						
+	bool mainExist(int posFT, functionTable FT[]);
 	
 	void printFunctionTable(functionTable FT[],int posFT){
 		int i;
-		printf("pos\tlexema\ttipoRet\tnumParams\tparams\n\n");
+		printf("\npos\tlexema\ttipoRet\tnumParams\tparams\t   numTablas\n\n");
 		for(i=0;i<posFT;i++){
-			printf("%d\t%s\t%d\t%d\t%p\n",
+			printf("%d\t%s\t%d\t%d\t\t%p\t%d\n",
 					i,
 					FT[i].lexema,
 					FT[i].tipoRet,
 					FT[i].numParams,
-					FT[i].parametros);
+					FT[i].parametros,
+					FT[i].posTablas);
 		}
+		printf("\n");
 	}
 		
 %}
@@ -239,7 +247,13 @@
 	}numero;
 	
 	struct {
+		char *codigo;
 		int tipo;
+	}P;
+	
+	struct {
+		int tipo;
+		int tablaNum;
 	}D;
 	
 	struct {
@@ -325,7 +339,14 @@
 // Palabras Reservadas
 
 %token <cadena> INT DOUBLE FLOAT CHAR VOID STRUCT 
-%token IF ELSE WHILE DO FOR SWITCH RETURN
+%token IF
+%token ELSE
+%token WHILE
+%token DO
+%token FOR
+%token SWITCH
+%token RETURN
+
 %token BREAK CASE DEFAULT TRUE FALSE FUNC PRINT
 
 // Signos de Puntuacion
@@ -360,6 +381,8 @@
 
 // Declaracion de NO TERMINALES
 
+%type<P> p
+
 %type<D> d
 %type<T> t
 %type<L> l
@@ -378,101 +401,97 @@
 %type<B> b
 %type<R> r
 
-%start inicio
+%start initial
 
 %%
 
-inicio :  s {
-			printf(">>>\n\n%s\n",$1.codigo);
-		}
-		| t {
-			printf("El tipo es: %d\n",$1.tipo);
-		}
-		| b {
-			printf("b.trueLabel: %s\nb.falseLabel: %s\n\n",$1.trueLabel,$1.falseLabel);
-			printf(">>>\n\n%s",$1.codigo);
-		}
-		|a {
-			printf("\nnumParams: %d\n",$1.numParams);
-			struct params *aux;
-			aux = $1.parametros;
-			
-			while(aux){
-				printf("%p: tipo: %d\tisArray: %d\n",aux,aux->tipo,(int)aux->isArray);
-				aux = aux->next;
-			}
-			
-			posTT++;
-			posST++;
-			
-			printTypeTable(TT,posTT,typNum);
-			printSymbolTable(ST,posST,symNum);
-		}
-		| f {
-			printf("Codigo F: %s\n",$1.codigo);
-			printTypeTable(TT,posTT,typNum);
-			printSymbolTable(ST,posST,symNum);
-			printFunctionTable(FT,posFT);
-		}
-		| e {
-			posTT++;
-			posST++;
-			printTypeTable(TT,posTT,typNum);
-			printSymbolTable(ST,posST,symNum);
-			printf("Tipo: %d\tTemp: %s\tCodigo: \n\n%s\n",$1.tipo,$1.temp,$1.codigo);
+initial : p {
+			if(mainExist(posFT,FT)){ // Validando que la funcion main haya sido declarada
+				if(strcmp(FT[0].lexema,"main") != 0){ // Validando que main haya sido la ultima funcion en ser declarada
+					yyerror("semantic error:: [LA FUNCION MAIN TIENE QUE SER LA ULTIMA EN SER DECLARADA]");
+				} else {
+					printf("CODIGO\n\n%s",$1.codigo);
+					printFunctionTable(FT,posFT);
+					printTypeTable(TT,posTT,typNum);
+					printSymbolTable(ST,posST,symNum);
+				}
+			} else {
+				yyerror("semantic error:: [LA FUNCION MAIN NO HA SIDO DECLARADA]");
+			}			
 		};
+
+p : d f {
+		$$.codigo = $2.codigo;
+		$$.tipo = $1.tipo;
+	};
+
 
 d : t l {
 		$$.tipo = $1.tipo;
+		$$.tablaNum = posTT; // Se pasa para saber que tabla de simbolos/tipos corresponde con que funcion
 		
-		int i;
+		if($1.tipo == 0){
+			yyerror("semantic error:: [LAS VARIABLES NO PUEDEN SER DE TIPO VOID]");
 		
-		// Vaciado de Tabla de Tipos Embrion a la Tabla de Tipos que Corresponda
+		} else {
+			int i;
+		
+			// Vaciado de Tabla de Tipos Embrion a la Tabla de Tipos que Corresponda
 	
 		
-		for(i=0;i<$2.elementosETT;i++){
-			TT[posTT][ETT[i].typNum].tipo = "array";
-			if(ETT[i].tipoBase == -1){
-				TT[posTT][ETT[i].typNum].tipoBase = $1.tipo;
-			} else {
-				TT[posTT][ETT[i].typNum].tipoBase = ETT[i].tipoBase;
+			for(i=0;i<$2.elementosETT;i++){
+				TT[posTT][ETT[i].typNum].tipo = "array";
+				if(ETT[i].tipoBase == -1){
+					TT[posTT][ETT[i].typNum].tipoBase = $1.tipo;
+				} else {
+					TT[posTT][ETT[i].typNum].tipoBase = ETT[i].tipoBase;
+				}
+				TT[posTT][ETT[i].typNum].dim = ETT[i].dim * getDimWithTypNumPosTT($1.tipo,posTT,TT);
 			}
-			TT[posTT][ETT[i].typNum].dim = ETT[i].dim * getDimWithTypNumPosTT($1.tipo,posTT,TT);
-		}
 		
 		
-		// Vaciado de Tabla de Simbolos Embrion a la Tabla de Simbolos que Corresponda
+			// Vaciado de Tabla de Simbolos Embrion a la Tabla de Simbolos que Corresponda
 		
-		for(i=0;i<$2.elementosEST;i++){
-			ST[posST][symNum[posST]].lexema = EST[i].lexema;
-			if(EST[i].tipo == -1){
-				ST[posST][symNum[posST]].tipo = $1.tipo;
-			} else {
-				ST[posST][symNum[posST]].tipo = EST[i].tipo;
-			}
-			ST[posST][symNum[posST]].tipoVar = "var";
-			if(symNum[posST] > 0){
-				ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithTypNumPosTT(ST[posST][symNum[posST]-1].tipo,posTT,TT);		
-			} else {
-				ST[posST][symNum[posST]].dir = 0;
-			}
+			for(i=0;i<$2.elementosEST;i++){
+				ST[posST][symNum[posST]].lexema = EST[i].lexema;
+				if(EST[i].tipo == -1){
+					ST[posST][symNum[posST]].tipo = $1.tipo;
+				} else {
+					ST[posST][symNum[posST]].tipo = EST[i].tipo;
+				}
+				ST[posST][symNum[posST]].tipoVar = "var";
 			
-			/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
-			   symNum[posST] siempre almacene la direccion de la tabla de simbolos en donde podemos 
-			   almacenar un elemeto directamente */
-			   
-			symNum[posST] = symNum[posST] + 1; 
+				if(symNum[posST] > 0){ // Si ya hay algun elemento en la tabla
+					if(ST[posST][symNum[posST]-1].dir == -1){ // Si el ultimo elemento agregado es un parametro
+						ST[posST][symNum[posST]].dir = 0;
+					} else {
+						ST[posST][symNum[posST]].dir = ST[posST][symNum[posST]-1].dir + getDimWithTypNumPosTT(ST[posST][symNum[posST]-1].tipo,posTT,TT);
+					}
+				} else {
+					ST[posST][symNum[posST]].dir = 0;
+				}
+			
+				/* Cada que insertamos un elemento en la tabla incrementamos esta variable para que
+				   symNum[posST] siempre almacene la direccion de la tabla de simbolos en donde podemos 
+				   almacenar un elemeto directamente */
+				   
+				symNum[posST] = symNum[posST] + 1; 
+			}
+		
+			posTT++; // Apuntamos a nueva tabla de tipos
+			posST++; // Apuntamos a nueva tabla de simbolos
+		
+			/* Reseteamos las tablas de simbolos embrion y de tipos embiron para que
+			   puedan ser utilizadas despues sin mayor problema por otras funciones */
+		
+			posEST = 0; 
+			posETT = 0;
 		}
-		
-		posTT++; // Apuntamos a nueva tabla de tipos
-		posST++; // Apuntamos a nueva tabla de simbolos
-		
-	//	printTypeTable(TT,posTT,typNum);
-	//	printSymbolTable(ST,posST,symNum);
-		
-	//	printEmbryoSymbolTable(EST,posEST);
-	//	printEmbryoTypeTable(ETT,posETT);
-};
+	}
+	| {
+		$$.tipo = -1;
+		$$.tablaNum = -1;
+	};
 
 t : VOID {
 		$$.tipo = getTypeWithTypeStr($1,posTT,TT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
@@ -545,7 +564,7 @@ c : LCHT NUMERO RCHT c {
 	};
 	
 f : FUNC t ID LPAR a RPAR LLLVE d s RLLVE f {
-		insertIntoFT(&posFT,$3,$9.tipoRet,$5.numParams,$5.parametros,FT);
+		insertIntoFT(&posFT,$3,$2.tipo,$5.numParams,$5.parametros,FT,$8.tablaNum);
 		
 		codeSnippets[0] = $3;
 		codeSnippets[1] = ":\n";
@@ -568,29 +587,42 @@ a : g {
 	};
 	
 g : g COMA t ID i {
-		if($5.numIndices == 0){
-			insertIntoST(posST,&symNum[posST],$4,$3.tipo,"param",0,ST);
-			$$.numParams = $1.numParams + 1;
-			$$.parametros = $1.parametros;
-			insertParam($$.parametros,$3.tipo,false);
+
+		/* Se considera que todos los parametros tienen direccion -1 por que por ser
+		   parametros ya fueron declarados en algun otro lado y esa es su verdadera
+		   direccion*/
+		   
+		if ($3.tipo == 0){// Validando que los parametros no sean tipo void
+			yyerror("semantic error:: [LOS PARAMETROS NO PUEDEN SER DE TIPO VOID]");
 		} else {
-			insertIntoTT(posTT,&typNum[posST],"array",$3.tipo,$5.numIndices);
-			insertIntoST(posST,&symNum[posST],$4,typNum[posST]-1,"param",0,ST);
-			$$.numParams = $1.numParams + 1;
-			$$.parametros = $1.parametros;
-			insertParam($$.parametros,$3.tipo,true);
+			if($5.numIndices == 0){
+				insertIntoST(posST,&symNum[posST],$4,$3.tipo,"param",-1,ST);
+				$$.numParams = $1.numParams + 1;
+				$$.parametros = $1.parametros;
+				insertParam($$.parametros,$3.tipo,false);
+			} else {// Si los parametros no son tipo void
+				insertIntoTT(posTT,&typNum[posST],"array",$3.tipo,$5.numIndices);
+				insertIntoST(posST,&symNum[posST],$4,typNum[posST]-1,"param",-1,ST);
+				$$.numParams = $1.numParams + 1;
+				$$.parametros = $1.parametros;
+				insertParam($$.parametros,$3.tipo,true);
+			}
 		}
 	}
 	| t ID i {
-		if($3.numIndices == 0){
-			insertIntoST(posST,&symNum[posST],$2,$1.tipo,"param",0,ST);
-			$$.numParams = 1;
-			$$.parametros = initParam($1.tipo,false);
+		if($1.tipo == 0){// Validando que los parametros no sean tipo void
+			yyerror("semantic error:: [LOS PARAMETROS NO PUEDEN SER DE TIPO VOID]");
 		} else {
-			insertIntoTT(posTT,&typNum[posST],"array",$1.tipo,$3.numIndices);
-			insertIntoST(posST,&symNum[posST],$2,typNum[posST]-1,"param",0,ST);
-			$$.numParams = 1;
-			$$.parametros = initParam($1.tipo,true);
+			if($3.numIndices == 0){
+				insertIntoST(posST,&symNum[posST],$2,$1.tipo,"param",-1,ST);
+				$$.numParams = 1;
+				$$.parametros = initParam($1.tipo,false);
+			} else {// Si los parametros no son tipo void
+				insertIntoTT(posTT,&typNum[posST],"array",$1.tipo,$3.numIndices);
+				insertIntoST(posST,&symNum[posST],$2,typNum[posST]-1,"param",-1,ST);
+				$$.numParams = 1;
+				$$.parametros = initParam($1.tipo,true);
+			}
 		}
 	};
 	
@@ -601,22 +633,7 @@ i : LCHT RCHT i {
 		$$.numIndices = 0;
 	};
 
-s : s s {
-		$$.next = $2.next;
-		
-		codeSnippets[0] = $1.codigo;
-		codeSnippets[1] = $2.codigo;
-		
-		$$.codigo = synthesizeCode(codeSnippets,2);
-		
-		if($1.tipoRet == $2.tipoRet){
-			$$.tipoRet = $1.tipoRet;
-		} else {
-			yyerror("Conflicto en los tipos de retorno");
-			exit(0);
-		}
-	}
-	| IF LPAR b RPAR s {
+s : IF LPAR b RPAR s {
 		codeSnippets[0] = $3.codigo;
 		codeSnippets[1] = $3.trueLabel;
 		codeSnippets[2] = ":\n"; 
@@ -680,8 +697,6 @@ s : s s {
 		
 		$$.next = $5.falseLabel;
 		$$.codigo = synthesizeCode(codeSnippets,13);
-		
-	
 	}
 	| e ASIG e {
 		$$.next = newLabel(&etiNum);
@@ -738,11 +753,12 @@ s : s s {
 		$$.codigo = "";
 	}
 	| PRINT e PCMA {
-		codeSnippets[0] = "PARAM ";
-		codeSnippets[1] = $2.temp;
-		codeSnippets[2] = "\nCALL print,1\n";
+		codeSnippets[0] = $2.codigo;
+		codeSnippets[1] = "PARAM ";
+		codeSnippets[2] = $2.temp;
+		codeSnippets[3] = "\nCALL print,1\n";
 		
-		$$.codigo = synthesizeCode(codeSnippets,3);
+		$$.codigo = synthesizeCode(codeSnippets,4);
 	};
 	
 j : CASE NUMERO PNTS s j {
@@ -760,7 +776,7 @@ j : CASE NUMERO PNTS s j {
 		if (isInt($2.tipo)) {
 			$$.numCasos[$$.indice] = $2.ival;
 		} else {
-			yyerror("Los numeros en los case deben ser enteros");
+			yyerror("semantic error: [LOS NUMEROS DE LOS CASOS DEBEN SER ENTEROS]");
 			exit(1);
 		}
 		
@@ -808,9 +824,9 @@ e : e SUM e {
 				$$.tipo = maxType($1.tipo,$3.tipo);
 				
 				$$.temp = newTempNumero(&tempNum,
-										posST,
-										posTT,
-										&symNum[posST],
+										posST-1,
+										posTT-1,
+										&symNum[posST-1],
 										ST,
 										TT,
 										$$.tipo);
@@ -847,9 +863,9 @@ e : e SUM e {
 				$$.tipo = maxType($1.tipo,$3.tipo);
 				
 				$$.temp = newTempNumero(&tempNum,
-										posST,
-										posTT,
-										&symNum[posST],
+										posST-1,
+										posTT-1,
+										&symNum[posST-1],
 										ST,
 										TT,
 										$$.tipo);
@@ -886,9 +902,9 @@ e : e SUM e {
 				$$.tipo = maxType($1.tipo,$3.tipo);
 				
 				$$.temp = newTempNumero(&tempNum,
-										posST,
-										posTT,
-										&symNum[posST],
+										posST-1,
+										posTT-1,
+										&symNum[posST-1],
 										ST,
 										TT,
 										$$.tipo);
@@ -925,9 +941,9 @@ e : e SUM e {
 				$$.tipo = maxType($1.tipo,$3.tipo);
 				
 				$$.temp = newTempNumero(&tempNum,
-										posST,
-										posTT,
-										&symNum[posST],
+										posST-1,
+										posTT-1,
+										&symNum[posST-1],
 										ST,
 										TT,
 										$$.tipo);
@@ -964,9 +980,9 @@ e : e SUM e {
 				$$.tipo = maxType($1.tipo,$3.tipo);
 				
 				$$.temp = newTempNumero(&tempNum,
-										posST,
-										posTT,
-										&symNum[posST],
+										posST-1,
+										posTT-1,
+										&symNum[posST-1],
 										ST,
 										TT,
 										$$.tipo);
@@ -1000,10 +1016,11 @@ e : e SUM e {
 	}
 	| CADENA {
 		$$.tipo = 4;
-		$$.temp = newTempCadena(&tempNum,posST,
-								posTT,
-								&symNum[posST],
-								&typNum[posTT],
+		$$.temp = newTempCadena(&tempNum,
+								posST-1,
+								posTT-1,
+								&symNum[posST-1],
+								&typNum[posTT-1],
 								ST,
 								TT,
 								$1);
@@ -1035,9 +1052,9 @@ e : e SUM e {
 		$$.tipo = 4;
 		
 		$$.temp = newTempCaracter(&tempNum,
-									posST,
-									posTT,
-									&symNum[posST],
+									posST-1,
+									posTT-1,
+									&symNum[posST-1],
 									ST,
 									TT);
 						
@@ -1172,8 +1189,32 @@ int main(int argc,char **argv){
 ////// MANEJO DE ERRORES /////////////////////////////////
 
 	void yyerror(char *s){
-		printf("%s::line:%d\n",s,yylineno-1);
+		printf("%s ::line:%d\n",s,yylineno-2);
+		exit(0);
 	}
+
+//*********************************************************
+//*****	 TABLA DE FUNCIONES *******************************
+//*********************************************************
+
+void insertIntoFT(int *posFT,char *lexeme,int retType,int paramsNum,struct params *x,functionTable FT[], int posTS){
+		FT[*posFT].lexema = lexeme;
+		FT[*posFT].tipoRet = retType;
+		FT[*posFT].numParams = paramsNum;
+		FT[*posFT].parametros = x;
+		FT[*posFT].posTablas = posTS;
+		
+		*posFT = *posFT + 1;
+}
+
+bool mainExist(int posFT, functionTable FT[]){
+	int i;
+	for(i=0;i<posFT;i++){
+		if(strcmp(FT[i].lexema,"main") == 0)
+			return true;
+	}
+	return false;
+}
 	
 //*********************************************************
 //*****	 TABLA DE SIMBOLOS ********************************
@@ -1191,6 +1232,7 @@ void insertIntoST(int posST,int *symNum,char *lexeme,int type,char *varType,int 
 void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 	int i,j;
 	for(i=0;i<posST;i++){
+		printf("*************** Tabla de Simbolos #%d ***************\n\n",i);
 		printf("lexema\ttipo\ttipoVar\tdir\n\n");
 		for(j=0;j<symNum[i];j++){
 			printf("%s\t%d\t%s\t%d\n",
@@ -1256,6 +1298,7 @@ void initTypeTable(typeTable TT[][1000],int typNum[]){
 void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
 	int i,j;
 	for(i=0;i<posTT;i++){
+		printf("***************** Tabla de Tipos #%d ***************\n",i);
 		printf("\npos\ttipo\ttipoBase\tdim\n\n");
 		for(j=0;j<typNum[i];j++){
 			printf("%d\t%s\t%d\t\t%d\n",
@@ -1266,19 +1309,6 @@ void printTypeTable(typeTable TT[][1000],int posTT,int typNum[]){
 		}
 		printf("\n");
 	}
-}
-
-//*********************************************************
-//*****	 TABLA DE FUNCIONES *******************************
-//*********************************************************
-
-void insertIntoFT(int *posFT,char *lexeme,int retType,int paramsNum,struct params *x,functionTable FT[]){
-		FT[*posFT].lexema = lexeme;
-		FT[*posFT].tipoRet = retType;
-		FT[*posFT].numParams = paramsNum;
-		FT[*posFT].parametros = x;
-		
-		*posFT = *posFT + 1;
 }
 
 /* Retorna la posicion de la tabla de tipos en donde la cadena que se pasa como argumento
@@ -1442,6 +1472,19 @@ char* switchCode(char* etiquetas[],int numCasos[],char* temp,int indice){
 	
 	return s;
 }
+
+int mergeRetType(int type1, int type2){
+	if(type1 == type2) {
+		return type1;
+	}else if(type1 == -1 || type2 == -1){
+		if(type1 == -1)
+			return type2;
+		else
+			return type1;
+	}		
+	yyerror("Conflicto en los tipos de retorno");
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~ FUNCIONES PARA EL NO TERMINAL E ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

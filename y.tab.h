@@ -152,7 +152,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 232 "yacc.y" /* yacc.c:1909  */
+#line 240 "yacc.y" /* yacc.c:1909  */
 
 
 	struct {
@@ -163,7 +163,13 @@ union YYSTYPE
 	}numero;
 	
 	struct {
+		char *codigo;
 		int tipo;
+	}P;
+	
+	struct {
+		int tipo;
+		int tablaNum;
 	}D;
 	
 	struct {
@@ -240,7 +246,7 @@ union YYSTYPE
 	char *cadena;
 	char caracter;
 
-#line 244 "y.tab.h" /* yacc.c:1909  */
+#line 250 "y.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
