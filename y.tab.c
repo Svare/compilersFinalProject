@@ -299,9 +299,16 @@
 		}
 		printf("\n");
 	}
+	
+//:::::::::::::::::::::::::::::::::::
+//::::: AREA DE PRUEBAS :::::::::::::
+//:::::::::::::::::::::::::::::::::::
+
+int getTypeWithID(char *id,int posST);
+bool existGlobal(int posFT, functionTable FT[]);
 		
 
-#line 305 "y.tab.c" /* yacc.c:339  */
+#line 312 "y.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -443,7 +450,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 240 "yacc.y" /* yacc.c:355  */
+#line 247 "yacc.y" /* yacc.c:355  */
 
 
 	struct {
@@ -537,7 +544,7 @@ union YYSTYPE
 	char *cadena;
 	char caracter;
 
-#line 541 "y.tab.c" /* yacc.c:355  */
+#line 548 "y.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -554,7 +561,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 558 "y.tab.c" /* yacc.c:358  */
+#line 565 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -856,12 +863,12 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   408,   408,   423,   429,   491,   496,   499,   502,   505,
-     508,   511,   515,   526,   538,   559,   566,   576,   580,   584,
-     589,   612,   629,   632,   636,   647,   666,   678,   701,   713,
-     718,   722,   752,   755,   764,   794,   801,   815,   822,   861,
-     900,   939,   978,  1017,  1029,  1051,  1068,  1081,  1092,  1097,
-    1102,  1123,  1133,  1144,  1147,  1150,  1153,  1156,  1159
+       0,   415,   415,   444,   450,   512,   517,   520,   523,   526,
+     529,   532,   536,   547,   559,   580,   587,   599,   603,   607,
+     612,   635,   652,   655,   659,   670,   689,   701,   724,   736,
+     741,   745,   775,   778,   787,   817,   824,   838,   845,   884,
+     923,   962,  1001,  1040,  1052,  1074,  1091,  1104,  1115,  1120,
+    1125,  1146,  1156,  1167,  1170,  1173,  1176,  1179,  1182
 };
 #endif
 
@@ -1721,13 +1728,27 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 408 "yacc.y" /* yacc.c:1646  */
+#line 415 "yacc.y" /* yacc.c:1646  */
     {
 			if(mainExist(posFT,FT)){ // Validando que la funcion main haya sido declarada
 				if(strcmp(FT[0].lexema,"main") != 0){ // Validando que main haya sido la ultima funcion en ser declarada
 					yyerror("semantic error:: [LA FUNCION MAIN TIENE QUE SER LA ULTIMA EN SER DECLARADA]");
 				} else {
 					printf("CODIGO\n\n%s",(yyvsp[0].P).codigo);
+					
+					// Imprimir codigo en el archivo
+					
+					FILE *output;
+					output = fopen("codigoIntermedio","w");
+
+					if (output) {
+						fprintf(output,"%s\n",(yyvsp[0].P).codigo);		
+					} else {
+						printf("Fallo la apertura del archivo\n");
+					}
+
+					fclose(output);
+					
 					printFunctionTable(FT,posFT);
 					printTypeTable(TT,posTT,typNum);
 					printSymbolTable(ST,posST,symNum);
@@ -1736,20 +1757,20 @@ yyreduce:
 				yyerror("semantic error:: [LA FUNCION MAIN NO HA SIDO DECLARADA]");
 			}			
 		}
-#line 1740 "y.tab.c" /* yacc.c:1646  */
+#line 1761 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 423 "yacc.y" /* yacc.c:1646  */
+#line 444 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.P).codigo = (yyvsp[0].F).codigo;
 		(yyval.P).tipo = (yyvsp[-1].D).tipo;
 	}
-#line 1749 "y.tab.c" /* yacc.c:1646  */
+#line 1770 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 429 "yacc.y" /* yacc.c:1646  */
+#line 450 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.D).tipo = (yyvsp[-1].T).tipo;
 		(yyval.D).tablaNum = posTT; // Se pasa para saber que tabla de simbolos/tipos corresponde con que funcion
@@ -1812,68 +1833,68 @@ yyreduce:
 			posETT = 0;
 		}
 	}
-#line 1816 "y.tab.c" /* yacc.c:1646  */
+#line 1837 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 491 "yacc.y" /* yacc.c:1646  */
+#line 512 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.D).tipo = -1;
 		(yyval.D).tablaNum = -1;
 	}
-#line 1825 "y.tab.c" /* yacc.c:1646  */
+#line 1846 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 496 "yacc.y" /* yacc.c:1646  */
+#line 517 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT); // Busca el tipo en la tabla de tipos dada una cadena ej: "int"
 	}
-#line 1833 "y.tab.c" /* yacc.c:1646  */
+#line 1854 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 499 "yacc.y" /* yacc.c:1646  */
+#line 520 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1841 "y.tab.c" /* yacc.c:1646  */
+#line 1862 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 502 "yacc.y" /* yacc.c:1646  */
+#line 523 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);;
 	}
-#line 1849 "y.tab.c" /* yacc.c:1646  */
+#line 1870 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 505 "yacc.y" /* yacc.c:1646  */
+#line 526 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1857 "y.tab.c" /* yacc.c:1646  */
+#line 1878 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 508 "yacc.y" /* yacc.c:1646  */
+#line 529 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1865 "y.tab.c" /* yacc.c:1646  */
+#line 1886 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 511 "yacc.y" /* yacc.c:1646  */
+#line 532 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.T).tipo = getTypeWithTypeStr((yyvsp[0].cadena),posTT,TT);
 	}
-#line 1873 "y.tab.c" /* yacc.c:1646  */
+#line 1894 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 515 "yacc.y" /* yacc.c:1646  */
+#line 536 "yacc.y" /* yacc.c:1646  */
     {
 		if(!(yyvsp[0].C).isArray){// si no es un arreglo
 			insertIntoEmbryoSymbolTable(&posEST,(yyvsp[-1].cadena),-1,EST);
@@ -1885,11 +1906,11 @@ yyreduce:
 			(yyval.L).elementosETT = (yyvsp[-3].L).elementosETT + (yyvsp[0].C).elementosETT;
 		}
 	}
-#line 1889 "y.tab.c" /* yacc.c:1646  */
+#line 1910 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 526 "yacc.y" /* yacc.c:1646  */
+#line 547 "yacc.y" /* yacc.c:1646  */
     {
 		if(!(yyvsp[0].C).isArray){// si no es un arreglo
 			insertIntoEmbryoSymbolTable(&posEST,(yyvsp[-1].cadena),-1,EST);
@@ -1901,11 +1922,11 @@ yyreduce:
 			(yyval.L).elementosETT = (yyvsp[0].C).elementosETT;
 		}
 	}
-#line 1905 "y.tab.c" /* yacc.c:1646  */
+#line 1926 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 538 "yacc.y" /* yacc.c:1646  */
+#line 559 "yacc.y" /* yacc.c:1646  */
     {
 		if((yyvsp[-2].numero).tipo == 1){// si NUMERO es un entero
 			(yyval.C).isArray = 1; // igual a true
@@ -1927,63 +1948,65 @@ yyreduce:
 			exit(1);
 		}
 	}
-#line 1931 "y.tab.c" /* yacc.c:1646  */
+#line 1952 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 559 "yacc.y" /* yacc.c:1646  */
+#line 580 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.C).isArray = 0; // igual a false
 		(yyval.C).isUltimo = 1; // igual a true
 		(yyval.C).tipoBase = 0; // No se usa solo se inicializa
 		(yyval.C).dim = 0; // No se usa solo se inicializa
 	}
-#line 1942 "y.tab.c" /* yacc.c:1646  */
+#line 1963 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 566 "yacc.y" /* yacc.c:1646  */
+#line 587 "yacc.y" /* yacc.c:1646  */
     {
 		insertIntoFT(&posFT,(yyvsp[-8].cadena),(yyvsp[-9].T).tipo,(yyvsp[-6].A).numParams,(yyvsp[-6].A).parametros,FT,(yyvsp[-3].D).tablaNum);
 		
-		codeSnippets[0] = (yyvsp[-8].cadena);
-		codeSnippets[1] = ":\n";
-		codeSnippets[2] = (yyvsp[-2].S).codigo;
-		codeSnippets[3] = (yyvsp[0].F).codigo;
+		codeSnippets[0] = "\n";
+		codeSnippets[1] = (yyvsp[-8].cadena);
+		codeSnippets[2] = ":\n\n";
+		codeSnippets[3] = (yyvsp[-2].S).codigo;
+		codeSnippets[4] = "return\n";
+		codeSnippets[5] = (yyvsp[0].F).codigo;
 		
-		(yyval.F).codigo = synthesizeCode(codeSnippets,4);
+		(yyval.F).codigo = synthesizeCode(codeSnippets,6);
 	}
-#line 1957 "y.tab.c" /* yacc.c:1646  */
+#line 1980 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 576 "yacc.y" /* yacc.c:1646  */
+#line 599 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.F).codigo = "";
 	}
-#line 1965 "y.tab.c" /* yacc.c:1646  */
+#line 1988 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 580 "yacc.y" /* yacc.c:1646  */
+#line 603 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.A).numParams = (yyvsp[0].G).numParams;
 		(yyval.A).parametros = (yyvsp[0].G).parametros;	
 	}
-#line 1974 "y.tab.c" /* yacc.c:1646  */
+#line 1997 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 584 "yacc.y" /* yacc.c:1646  */
+#line 607 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.A).numParams = 0;
 		(yyval.A).parametros = NULL;
 	}
-#line 1983 "y.tab.c" /* yacc.c:1646  */
+#line 2006 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 589 "yacc.y" /* yacc.c:1646  */
+#line 612 "yacc.y" /* yacc.c:1646  */
     {
 
 		/* Se considera que todos los parametros tienen direccion -1 por que por ser
@@ -2007,11 +2030,11 @@ yyreduce:
 			}
 		}
 	}
-#line 2011 "y.tab.c" /* yacc.c:1646  */
+#line 2034 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 612 "yacc.y" /* yacc.c:1646  */
+#line 635 "yacc.y" /* yacc.c:1646  */
     {
 		if((yyvsp[-2].T).tipo == 0){// Validando que los parametros no sean tipo void
 			yyerror("semantic error:: [LOS PARAMETROS NO PUEDEN SER DE TIPO VOID]");
@@ -2028,27 +2051,27 @@ yyreduce:
 			}
 		}
 	}
-#line 2032 "y.tab.c" /* yacc.c:1646  */
+#line 2055 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 629 "yacc.y" /* yacc.c:1646  */
+#line 652 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.I).numIndices = (yyvsp[0].I).numIndices + 1;
 	}
-#line 2040 "y.tab.c" /* yacc.c:1646  */
+#line 2063 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 632 "yacc.y" /* yacc.c:1646  */
+#line 655 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.I).numIndices = 0;
 	}
-#line 2048 "y.tab.c" /* yacc.c:1646  */
+#line 2071 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 636 "yacc.y" /* yacc.c:1646  */
+#line 659 "yacc.y" /* yacc.c:1646  */
     {
 		codeSnippets[0] = (yyvsp[-2].B).codigo;
 		codeSnippets[1] = (yyvsp[-2].B).trueLabel;
@@ -2060,11 +2083,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 2064 "y.tab.c" /* yacc.c:1646  */
+#line 2087 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 647 "yacc.y" /* yacc.c:1646  */
+#line 670 "yacc.y" /* yacc.c:1646  */
     {
 		char *w;
 		w = newLabel(&etiNum);
@@ -2084,11 +2107,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,11);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 2088 "y.tab.c" /* yacc.c:1646  */
+#line 2111 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 666 "yacc.y" /* yacc.c:1646  */
+#line 689 "yacc.y" /* yacc.c:1646  */
     {
 		
 		codeSnippets[0] = (yyvsp[-2].B).trueLabel;
@@ -2101,11 +2124,11 @@ yyreduce:
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 		(yyval.S).next = (yyvsp[-2].B).falseLabel;
 	}
-#line 2105 "y.tab.c" /* yacc.c:1646  */
+#line 2128 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 678 "yacc.y" /* yacc.c:1646  */
+#line 701 "yacc.y" /* yacc.c:1646  */
     {
 		
 		char *w;
@@ -2129,11 +2152,11 @@ yyreduce:
 		(yyval.S).next = (yyvsp[-4].B).falseLabel;
 		(yyval.S).codigo = synthesizeCode(codeSnippets,13);
 	}
-#line 2133 "y.tab.c" /* yacc.c:1646  */
+#line 2156 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 701 "yacc.y" /* yacc.c:1646  */
+#line 724 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.S).next = newLabel(&etiNum);
 		
@@ -2146,30 +2169,30 @@ yyreduce:
 		
 		(yyval.S).codigo = synthesizeCode(codeSnippets,6);
 	}
-#line 2150 "y.tab.c" /* yacc.c:1646  */
+#line 2173 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 713 "yacc.y" /* yacc.c:1646  */
+#line 736 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.S).next = newLabel(&etiNum);
 		(yyval.S).codigo = "AGUIMAWE\n";
 		(yyval.S).tipoRet = 11;
 	}
-#line 2160 "y.tab.c" /* yacc.c:1646  */
+#line 2183 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 718 "yacc.y" /* yacc.c:1646  */
+#line 741 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.S).next = (yyvsp[-1].S).next;
 		(yyval.S).codigo = (yyvsp[-1].S).codigo;
 	}
-#line 2169 "y.tab.c" /* yacc.c:1646  */
+#line 2192 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 722 "yacc.y" /* yacc.c:1646  */
+#line 745 "yacc.y" /* yacc.c:1646  */
     {
 		
 		(yyval.S).next = newLabel(&etiNum);
@@ -2200,19 +2223,19 @@ yyreduce:
 			(yyval.S).codigo = synthesizeCode(codeSnippets,12);
 		}
 	}
-#line 2204 "y.tab.c" /* yacc.c:1646  */
+#line 2227 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 752 "yacc.y" /* yacc.c:1646  */
+#line 775 "yacc.y" /* yacc.c:1646  */
     { // S -> break;
 		(yyval.S).codigo = "";
 	}
-#line 2212 "y.tab.c" /* yacc.c:1646  */
+#line 2235 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 755 "yacc.y" /* yacc.c:1646  */
+#line 778 "yacc.y" /* yacc.c:1646  */
     {
 		codeSnippets[0] = (yyvsp[-1].E).codigo;
 		codeSnippets[1] = "PARAM ";
@@ -2221,11 +2244,11 @@ yyreduce:
 		
 		(yyval.S).codigo = synthesizeCode(codeSnippets,4);
 	}
-#line 2225 "y.tab.c" /* yacc.c:1646  */
+#line 2248 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 764 "yacc.y" /* yacc.c:1646  */
+#line 787 "yacc.y" /* yacc.c:1646  */
     {
 		int i;
 		(yyval.J).next = (yyvsp[0].J).next;
@@ -2256,22 +2279,22 @@ yyreduce:
 		(yyval.J).codigo = synthesizeCode(codeSnippets,7);
 		
 	}
-#line 2260 "y.tab.c" /* yacc.c:1646  */
+#line 2283 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 794 "yacc.y" /* yacc.c:1646  */
+#line 817 "yacc.y" /* yacc.c:1646  */
     {
 		// J -> ε
 		(yyval.J).next = newLabel(&etiNum);
 		(yyval.J).indice = -1; // Para que el indice en la produccion anterior se inicie en 0
 		(yyval.J).codigo = ""; // El codigo debe ser cadena vacia para que no marque error "Violacion de Segmento"
 	}
-#line 2271 "y.tab.c" /* yacc.c:1646  */
+#line 2294 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 801 "yacc.y" /* yacc.c:1646  */
+#line 824 "yacc.y" /* yacc.c:1646  */
     {
 		// K -> default: S
 		(yyval.K).next = newLabel(&etiNum);
@@ -2286,22 +2309,22 @@ yyreduce:
 		
 		(yyval.K).codigo = synthesizeCode(codeSnippets,6);
 	}
-#line 2290 "y.tab.c" /* yacc.c:1646  */
+#line 2313 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 815 "yacc.y" /* yacc.c:1646  */
+#line 838 "yacc.y" /* yacc.c:1646  */
     {
 		// K -> ε
 		(yyval.K).next = newLabel(&etiNum);
 		(yyval.K).etiqueta = newLabel(&etiNum);
 		(yyval.K).codigo = "";
 	}
-#line 2301 "y.tab.c" /* yacc.c:1646  */
+#line 2324 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 822 "yacc.y" /* yacc.c:1646  */
+#line 845 "yacc.y" /* yacc.c:1646  */
     {
 			if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2341,11 +2364,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2345 "y.tab.c" /* yacc.c:1646  */
+#line 2368 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 861 "yacc.y" /* yacc.c:1646  */
+#line 884 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2385,11 +2408,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2389 "y.tab.c" /* yacc.c:1646  */
+#line 2412 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 900 "yacc.y" /* yacc.c:1646  */
+#line 923 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2429,11 +2452,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2433 "y.tab.c" /* yacc.c:1646  */
+#line 2456 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 939 "yacc.y" /* yacc.c:1646  */
+#line 962 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2473,11 +2496,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2477 "y.tab.c" /* yacc.c:1646  */
+#line 2500 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 978 "yacc.y" /* yacc.c:1646  */
+#line 1001 "yacc.y" /* yacc.c:1646  */
     {
 		if(isNumero((yyvsp[-2].E).tipo) && isNumero((yyvsp[0].E).tipo)){
 				(yyval.E).tipo = maxType((yyvsp[-2].E).tipo,(yyvsp[0].E).tipo);
@@ -2517,11 +2540,11 @@ yyreduce:
 				exit(1);
 			}
 	}
-#line 2521 "y.tab.c" /* yacc.c:1646  */
+#line 2544 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 1017 "yacc.y" /* yacc.c:1646  */
+#line 1040 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.E).tipo = 4;
 		(yyval.E).temp = newTempCadena(&tempNum,
@@ -2534,11 +2557,11 @@ yyreduce:
 								(yyvsp[0].cadena));
 		(yyval.E).codigo = (yyvsp[0].cadena);
 	}
-#line 2538 "y.tab.c" /* yacc.c:1646  */
+#line 2561 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 1029 "yacc.y" /* yacc.c:1646  */
+#line 1052 "yacc.y" /* yacc.c:1646  */
     {
 		int i;
 		char *s,buffer[30];
@@ -2561,11 +2584,11 @@ yyreduce:
 		(yyval.E).codigo = "";
 	
 	}
-#line 2565 "y.tab.c" /* yacc.c:1646  */
+#line 2588 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 1051 "yacc.y" /* yacc.c:1646  */
+#line 1074 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.E).tipo = 4;
 		
@@ -2582,11 +2605,11 @@ yyreduce:
 		strcpy(s,buffer);
 		(yyval.E).codigo = s;
 	}
-#line 2586 "y.tab.c" /* yacc.c:1646  */
+#line 2609 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 1068 "yacc.y" /* yacc.c:1646  */
+#line 1091 "yacc.y" /* yacc.c:1646  */
     {
 		char *s,*w;
 	
@@ -2600,11 +2623,11 @@ yyreduce:
 
 		(yyval.B).codigo = synthesizeCode(codeSnippets,4);
 	}
-#line 2604 "y.tab.c" /* yacc.c:1646  */
+#line 2627 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 1081 "yacc.y" /* yacc.c:1646  */
+#line 1104 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[0].B).trueLabel;
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2616,31 +2639,31 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,4);		
 	}
-#line 2620 "y.tab.c" /* yacc.c:1646  */
+#line 2643 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 1092 "yacc.y" /* yacc.c:1646  */
+#line 1115 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[0].B).falseLabel;
 		(yyval.B).falseLabel = (yyvsp[0].B).trueLabel;
 		(yyval.B).codigo = (yyvsp[0].B).codigo;
 	}
-#line 2630 "y.tab.c" /* yacc.c:1646  */
+#line 2653 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 1097 "yacc.y" /* yacc.c:1646  */
+#line 1120 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = (yyvsp[-1].B).trueLabel;
 		(yyval.B).falseLabel = (yyvsp[-1].B).falseLabel;
 		(yyval.B).codigo = (yyvsp[-1].B).codigo;
 	}
-#line 2640 "y.tab.c" /* yacc.c:1646  */
+#line 2663 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 1102 "yacc.y" /* yacc.c:1646  */
+#line 1125 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2662,11 +2685,11 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,14);
 	}
-#line 2666 "y.tab.c" /* yacc.c:1646  */
+#line 2689 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 1123 "yacc.y" /* yacc.c:1646  */
+#line 1146 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2677,11 +2700,11 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,3);
 	}
-#line 2681 "y.tab.c" /* yacc.c:1646  */
+#line 2704 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 1133 "yacc.y" /* yacc.c:1646  */
+#line 1156 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.B).trueLabel = newLabel(&etiNum);
 		(yyval.B).falseLabel = newLabel(&etiNum);
@@ -2692,59 +2715,59 @@ yyreduce:
 		
 		(yyval.B).codigo = synthesizeCode(codeSnippets,3);
 	}
-#line 2696 "y.tab.c" /* yacc.c:1646  */
+#line 2719 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 1144 "yacc.y" /* yacc.c:1646  */
+#line 1167 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "<";
 	}
-#line 2704 "y.tab.c" /* yacc.c:1646  */
+#line 2727 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 1147 "yacc.y" /* yacc.c:1646  */
+#line 1170 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = ">";
 	}
-#line 2712 "y.tab.c" /* yacc.c:1646  */
+#line 2735 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 1150 "yacc.y" /* yacc.c:1646  */
+#line 1173 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "<=";
 	}
-#line 2720 "y.tab.c" /* yacc.c:1646  */
+#line 2743 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 1153 "yacc.y" /* yacc.c:1646  */
+#line 1176 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = ">=";
 	}
-#line 2728 "y.tab.c" /* yacc.c:1646  */
+#line 2751 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 1156 "yacc.y" /* yacc.c:1646  */
+#line 1179 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "!=";
 	}
-#line 2736 "y.tab.c" /* yacc.c:1646  */
+#line 2759 "y.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 1159 "yacc.y" /* yacc.c:1646  */
+#line 1182 "yacc.y" /* yacc.c:1646  */
     {
 		(yyval.R).codigo = "==";
 	}
-#line 2744 "y.tab.c" /* yacc.c:1646  */
+#line 2767 "y.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2748 "y.tab.c" /* yacc.c:1646  */
+#line 2771 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2972,7 +2995,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1163 "yacc.y" /* yacc.c:1906  */
+#line 1186 "yacc.y" /* yacc.c:1906  */
 
 
 
@@ -3056,6 +3079,36 @@ void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 		}
 		printf("\n");
 	}
+}
+
+int getTypeWithID(char *id,int posST){
+
+	int i;
+	
+	for(i=0;i<symNum[posST];i++){
+		if(strcmp(ST[posST][i].lexema,id) == 0){// Si los lexemas coinciden
+			return ST[posST][i].tipo;
+		}	
+	}
+	
+	if( existGlobal(posFT,FT) ){
+		for(i=0;i<symNum[0];i++){
+			if(strcmp(ST[0][i].lexema,id) == 0){// Si los lexemas coinciden
+				return ST[0][i].tipo;
+			}	
+		}
+	} else {
+		printf("\nno existe tabla se simbolos global\n");
+	}
+	
+	yyerror("semantic error:: [EL ID NO HA SIDO DECLARADO]");
+}
+
+bool existGlobal(int posFT, functionTable FT[]){
+	if(FT[posFT-1].posTablas != 0)
+		return true;
+	else
+		return false;
 }
 
 //*********************************************************

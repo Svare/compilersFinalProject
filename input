@@ -1,28 +1,53 @@
-func char orco(double r, int m){
+
+float a,b[2][3],c,d[3][2][1]
+
+
+func char selecciona(double r, int m){
+	
 	int i,j,k[2][2][2]
 	
 	switch(3+5+7-6){
-		case 4:
-			print 9*9;
+		case 1:
+			print 34*34.6%6/8;
+		case 2:
+			if(45>46 || 56!=57){
+				print 55;
+			}
 		default:
-			print 45;
+			print 911;
 	}
 }
 
-func double mia(int n, char m){
+func double ciclos(int n, char m){
+	
 	char r,s[4][1],t
 	
-	if(3>=4||5>3&&true){
-		print 78;
-	}
+	do{
+		if(45>23){
+			print 56.6;
+		}
+		
+	}while(!(3>2||34!=89&&true));
 }
+
 
 func float main(int m,char f){
 	int a,c[5]
 	
 	switch(3+4){
 		case 4:
-			print 45;
+			for(4=4;56>2||45!=45&&34==34;5+4=5){
+				switch(34-34){
+					case 1:
+						print 1;
+					case 2:
+						print 2;
+					case 3:
+						print 3;
+					default:
+						print 45;				
+				}
+			}
 		default:
 			print 43;
 	}

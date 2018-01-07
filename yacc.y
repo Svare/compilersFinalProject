@@ -234,6 +234,13 @@
 		}
 		printf("\n");
 	}
+	
+//:::::::::::::::::::::::::::::::::::
+//::::: AREA DE PRUEBAS :::::::::::::
+//:::::::::::::::::::::::::::::::::::
+
+int getTypeWithID(char *id,int posST);
+bool existGlobal(int posFT, functionTable FT[]);
 		
 %}
 
@@ -411,6 +418,20 @@ initial : p {
 					yyerror("semantic error:: [LA FUNCION MAIN TIENE QUE SER LA ULTIMA EN SER DECLARADA]");
 				} else {
 					printf("CODIGO\n\n%s",$1.codigo);
+					
+					// Imprimir codigo en el archivo
+					
+					FILE *output;
+					output = fopen("codigoIntermedio","w");
+
+					if (output) {
+						fprintf(output,"%s\n",$1.codigo);		
+					} else {
+						printf("Fallo la apertura del archivo\n");
+					}
+
+					fclose(output);
+					
 					printFunctionTable(FT,posFT);
 					printTypeTable(TT,posTT,typNum);
 					printSymbolTable(ST,posST,symNum);
@@ -566,12 +587,14 @@ c : LCHT NUMERO RCHT c {
 f : FUNC t ID LPAR a RPAR LLLVE d s RLLVE f {
 		insertIntoFT(&posFT,$3,$2.tipo,$5.numParams,$5.parametros,FT,$8.tablaNum);
 		
-		codeSnippets[0] = $3;
-		codeSnippets[1] = ":\n";
-		codeSnippets[2] = $9.codigo;
-		codeSnippets[3] = $11.codigo;
+		codeSnippets[0] = "\n";
+		codeSnippets[1] = $3;
+		codeSnippets[2] = ":\n\n";
+		codeSnippets[3] = $9.codigo;
+		codeSnippets[4] = "return\n";
+		codeSnippets[5] = $11.codigo;
 		
-		$$.codigo = synthesizeCode(codeSnippets,4);
+		$$.codigo = synthesizeCode(codeSnippets,6);
 	}
 	| {
 		$$.codigo = "";
@@ -1243,6 +1266,36 @@ void printSymbolTable(symbolTable ST[][1000],int posST,int symNum[]){
 		}
 		printf("\n");
 	}
+}
+
+int getTypeWithID(char *id,int posST){
+
+	int i;
+	
+	for(i=0;i<symNum[posST];i++){
+		if(strcmp(ST[posST][i].lexema,id) == 0){// Si los lexemas coinciden
+			return ST[posST][i].tipo;
+		}	
+	}
+	
+	if( existGlobal(posFT,FT) ){
+		for(i=0;i<symNum[0];i++){
+			if(strcmp(ST[0][i].lexema,id) == 0){// Si los lexemas coinciden
+				return ST[0][i].tipo;
+			}	
+		}
+	} else {
+		printf("\nno existe tabla se simbolos global\n");
+	}
+	
+	yyerror("semantic error:: [EL ID NO HA SIDO DECLARADO]");
+}
+
+bool existGlobal(int posFT, functionTable FT[]){
+	if(FT[posFT-1].posTablas != 0)
+		return true;
+	else
+		return false;
 }
 
 //*********************************************************
